@@ -28,6 +28,7 @@ public class ttcustFileDAO implements ttcustDAO {
     private String filename;
     private static int nextInt;
 
+    //@Value("${ttcust.file}")
     public ttcustFileDAO(@Value("${ttcust.file}") String filename, ObjectMapper objectMapper) throws IOException {
         this.filename = filename;
         this.objectMapper = objectMapper;
