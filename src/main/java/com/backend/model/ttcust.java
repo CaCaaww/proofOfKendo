@@ -1,4 +1,4 @@
-package com.backend.classes;
+package com.backend.model;
 // Author: James Allen Hansplant
 
 // A ttcust is a customer that is given in the ttcus-simple.json file.
