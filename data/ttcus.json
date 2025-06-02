@@ -1,4 +1,4 @@
-{"ttCust": [
+[
   {
     "Customer": "AC70",
     "flex-key": "cus|AC80  ",
@@ -2654,4 +2654,4 @@
     "AllowOverShipment": true,
     "InvoiceType": ""
   }
-]}
+]

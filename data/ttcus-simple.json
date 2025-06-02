@@ -1,4 +1,4 @@
-{"ttCust": [
+[
   {
     "customer": "",
     "NAME": "INACTIVE",
@@ -623,4 +623,4 @@
     "bill-to-city": "Clawson",
     "bill-to-state": "MI"
   }
-]}
+]
