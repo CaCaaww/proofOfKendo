@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
-import {Grid, GridColumn as Column, GridItemChangeEvent} from '@progress/kendo-react-grid';
+import {Grid, GridColumn as Column, GridItemChangeEvent, GridColumn} from '@progress/kendo-react-grid';
 
 import './App.css'
 const url = 'http://localhost:8080/ttcust'
-interface customer {
-  customer?: string;
+interface Customer {
+  custID: string;
   NAME?: string;
   billToCity?: string;
   billToState?: string;
 }
 
 const App: React.FC = () => {
-  const [custs, setCusts] = useState<customer[]>([]);
+  const [custs, setCusts] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ const App: React.FC = () => {
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
-        const data: customer[] = await response.json();
+        const data: Customer[] = await response.json();
         setCusts(data)
       } catch (err) {
         setError((err as Error).message);
@@ -41,15 +41,12 @@ const App: React.FC = () => {
   return (
     <div>
       <h1>Customers</h1>
-      <ul>
-        {custs.map((customer) => (
-          <p key={customer.customer}>
-            <h2>{customer.NAME}</h2>
-            <p>{customer.billToCity}</p>
-            <p>{customer.billToState}</p>
-          </p>
-        ))}
-      </ul>
+      <Grid data={custs}>
+        <GridColumn field="customer"/>
+        <GridColumn field="bill-to-city"/>
+        <GridColumn field="bill-to-state"/>
+        <GridColumn field="NAME"/>
+      </Grid>
     </div>
   );
   
