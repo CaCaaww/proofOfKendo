@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import {Grid, GridColumn as Column, GridItemChangeEvent, GridColumn} from '@progress/kendo-react-grid';
-
-import './App.css'
+import { DropDownList } from '@progress/kendo-react-dropdowns'
+import "@progress/kendo-theme-default/dist/all.css";
+//import './App.css'
 const url = 'http://localhost:8080/ttcust'
 interface Customer {
   custID: string;
@@ -41,11 +42,22 @@ const App: React.FC = () => {
   return (
     <div>
       <h1>Customers</h1>
-      <Grid data={custs}>
-        <GridColumn field="customer"/>
-        <GridColumn field="bill-to-city"/>
-        <GridColumn field="bill-to-state"/>
-        <GridColumn field="NAME"/>
+      <Grid
+        style={{ height: '475px'}} 
+        data={custs}
+        dataItemKey='customer' 
+        sortable={true}
+        autoProcessData={true}
+        pageable={true}
+        filterable={true}
+        defaultSkip={0}
+        defaultTake={20}
+
+        >
+        <GridColumn field="customer" title="Customer ID"/>
+        <GridColumn field="bill-to-city" title="City"/>
+        <GridColumn field="bill-to-state" title="State"/>
+        <GridColumn field="NAME" title = "Customer Name" width = '300px'/>
       </Grid>
     </div>
   );
