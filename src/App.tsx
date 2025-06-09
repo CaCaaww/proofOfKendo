@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {Grid, GridColumn as GridColumn} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
 //import './App.css'
-const url = 'http://localhost:8080/ttcust'
+const url = 'http://localhost:8080/jttcust'
 interface Customer {
   custID: string;
   NAME?: string;
@@ -49,7 +49,7 @@ const App: React.FC = () => {
   const handleColumnReorder = (event: { columns: any; }) => {
      const reorderedColumns = event.columns;
     console.log("COlUMNS CHANGED ORDER")
-    console.log(event.columns)
+    console.log(reorderedColumns)
   };
 
   return (
