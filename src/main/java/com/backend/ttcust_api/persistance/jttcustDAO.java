@@ -25,6 +25,8 @@ public class jttcustDAO {
             System.out.println("Open-Sesame-Says-What?:");
             password = scanner.nextLine();
 
+            scanner.close();
+
             Class.forName ( "com.ddtek.jdbc.openedge.OpenEdgeDriver");
             con = DriverManager.getConnection ( jdbcURL, username, password );
             System.out.println("NO ERRORS THROWN WHEN TRYING TO CONNECT");

@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
-import {Grid, GridColumn as GridColumn} from '@progress/kendo-react-grid';
+import {Grid, GridColumn} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
+
 //import './App.css'
+
 const url = 'http://localhost:8080/jttcust'
+
 interface Customer {
   custID: string;
   NAME?: string;
@@ -10,7 +13,11 @@ interface Customer {
   billToState?: string;
 }
 
-const App: React.FC = () => {
+
+
+const App = () => {
+
+
   const [custs, setCusts] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +43,8 @@ const App: React.FC = () => {
     fetchCusts();
   }, []);
 
+  
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
   const initialColumns = [
@@ -51,7 +60,7 @@ const App: React.FC = () => {
     console.log("COlUMNS CHANGED ORDER")
     console.log(reorderedColumns)
   };
-
+  
   return (
     <div>
       <h1>Customers</h1>
@@ -63,8 +72,8 @@ const App: React.FC = () => {
         autoProcessData={true}
         pageable={true}
         filterable={true}
-        defaultSkip={0}
-        defaultTake={15}
+        skip={0}
+        take={15}
         reorderable={true}
         resizable={true}
         onColumnReorder={handleColumnReorder}
@@ -74,6 +83,7 @@ const App: React.FC = () => {
           <GridColumn key={col.field} field={col.field} title={col.title} orderIndex={col.orderIndex} width={col.width}></GridColumn>
         ))}
       </Grid>
+      
     </div>
   );
   
