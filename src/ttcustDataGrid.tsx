@@ -12,12 +12,24 @@ interface Customer {
   billToCity?: string;
   billToState?: string;
 }
+interface column {
+  field: string;
+  title: string;
+  orderIndex: number;
+  width: string;
+}
+const initialColumns = [
+  { field: "customer", title: "Customer ID", orderIndex: 0, width: '150px'},
+  { field: "bill-to-city", title: "City", orderIndex: 1, width: '120px' },
+  { field: "bill-to-state", title: "State", orderIndex: 2, width: '200px' },
+  { field: "NAME", title: "Customer Name", orderIndex: 3, width: '400px' },
+  ];
 
 
 
-const App = () => {
+const ttcustDataGrid = () => {
 
-
+  const [cols, setCols] = useState<column[]>(initialColumns);
   const [custs, setCusts] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,18 +59,15 @@ const App = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
-  const initialColumns = [
-  { field: "customer", title: "Customer ID", orderIndex: 0, width: '150px'},
-  { field: "bill-to-city", title: "City", orderIndex: 1, width: '120px' },
-  { field: "bill-to-state", title: "State", orderIndex: 2, width: '200px' },
-  { field: "NAME", title: "Customer Name", orderIndex: 3, width: '400px' },
-  ];
+
+  
   
 
   const handleColumnReorder = (event: { columns: any; }) => {
      const reorderedColumns = event.columns;
     console.log("COlUMNS CHANGED ORDER")
     console.log(reorderedColumns)
+    setCols(reorderedColumns);
   };
   
   return (
@@ -79,7 +88,7 @@ const App = () => {
         onColumnReorder={handleColumnReorder}
         
         >
-        {initialColumns.map((col) => (
+        {cols.map((col) => (
           <GridColumn key={col.field} field={col.field} title={col.title} orderIndex={col.orderIndex} width={col.width}></GridColumn>
         ))}
       </Grid>
@@ -89,4 +98,4 @@ const App = () => {
   
 };
 
-export default App;
+export default ttcustDataGrid;
