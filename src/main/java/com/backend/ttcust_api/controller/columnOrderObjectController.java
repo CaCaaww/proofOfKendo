@@ -53,9 +53,9 @@ public class columnOrderObjectController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("/")
+    @GetMapping("/u")
     public ResponseEntity<columnOrderObject[]> searchColooByUserId(@RequestParam String userId){
-        LOG.info("GET /coloo/?userId=" + userId);
+        LOG.info("GET /coloo/u?userId=" + userId);
         try {
             columnOrderObject[] result = columnOrderObjectDAO.getColumnOrderByUserId(userId);
             return new ResponseEntity<columnOrderObject[]>(result, HttpStatus.OK);
@@ -64,9 +64,9 @@ public class columnOrderObjectController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("/")
+    @GetMapping("/c")
     public ResponseEntity<columnOrderObject[]> searchColooByColumnId(@RequestParam String columnId){
-        LOG.info("GET /coloo/?columnId=" + columnId);
+        LOG.info("GET /coloo/c?columnId=" + columnId);
         try {
             columnOrderObject[] result = columnOrderObjectDAO.getColumnOrderByColumnId(columnId);
             return new ResponseEntity<columnOrderObject[]>(result, HttpStatus.OK);

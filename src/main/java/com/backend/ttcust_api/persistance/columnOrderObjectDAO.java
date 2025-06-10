@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import com.backend.ttcust_api.model.columnOrderObject;
 
 public class columnOrderObjectDAO {
-    private String filename = "columnOrder.json";
+    private String filename = "data/columnOrder.json";
     private Map<String, columnOrderObject> columnOrders;
     private ObjectMapper objectMapper = new ObjectMapper();
     
