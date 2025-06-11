@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 @RestController
+@CrossOrigin("http://localhost:5173")
 @RequestMapping("/jttcust")
 public class jttcustController {
     private static final Logger LOG = Logger.getLogger(ttcustController.class.getName());
@@ -28,6 +30,20 @@ public class jttcustController {
     
     public jttcustController() throws IOException{
         jttcustDAO = new jttcustDAO();
+    }
+    @GetMapping("/login/{username}")
+    public ResponseEntity<String> loginAttempt(@PathVariable String username){
+        LOG.info("GET /login/" + username);
+        try {
+            String result = jttcustDAO.loginRequest(username);
+            if (result != null){
+                return new ResponseEntity<String>(result, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     @GetMapping("/{custID}")
     public ResponseEntity<ttcust> getTtcust(@PathVariable String custID){

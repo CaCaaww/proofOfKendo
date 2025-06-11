@@ -38,6 +38,34 @@ public class jttcustDAO {
         
     }
 
+    public String getPassword(){
+        return password;
+    }
+
+    public String loginRequest(String username){
+        try{
+            // jttcustDAO = new jttcustDAO();
+            // password = jttcustDAO.getPassword();
+
+            Class.forName ( "com.ddtek.jdbc.openedge.OpenEdgeDriver");
+            con = DriverManager.getConnection ( jdbcURL, "sysprogress", "sysprogress" );
+            //System.out.println("NO ERRORS THROWN WHEN TRYING TO CONNECT");
+
+            String query = "SELECT \"user-id\" FROM pub.usr WHERE \"user-name\" = \'" + username + "\'";
+            Statement statement = con.createStatement();
+            // execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery(query);
+            ArrayList<String> usernameArrayList = new ArrayList<>();
+            while (resultSet.next()){
+                String userId = resultSet.getString("User-id");
+                usernameArrayList.add(userId);
+            }
+            return usernameArrayList.get(0);
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
+    }
 
     private ttcust[] getTtcustsByMatchingX(String var, String matcher){
         try {

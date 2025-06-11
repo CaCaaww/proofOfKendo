@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 @RestController
+@CrossOrigin("http://localhost:5173")
 @RequestMapping("/ttcust")
 public class ttcustController {
     private static final Logger LOG = Logger.getLogger(ttcustController.class.getName());
