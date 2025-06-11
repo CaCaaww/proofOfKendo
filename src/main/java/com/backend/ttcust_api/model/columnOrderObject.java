@@ -1,12 +1,14 @@
 package com.backend.ttcust_api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 
 public class columnOrderObject {
     private String userId;
     private String columnId;
     private dataColumn[] dataColumns;
+
+    public columnOrderObject(){
+        
+    }
 
     public columnOrderObject(String userId, String columnId, dataColumn[] dataColumns){
         this.userId = userId;

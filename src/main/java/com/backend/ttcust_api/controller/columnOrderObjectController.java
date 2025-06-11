@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,12 +15,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.backend.ttcust_api.model.dataColumn;
 import com.backend.ttcust_api.model.columnOrderObject;
 import com.backend.ttcust_api.persistance.columnOrderObjectDAO;
+
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
 @RestController
+@CrossOrigin("http://localhost:5173")
 @RequestMapping("/coloo")
 public class columnOrderObjectController {
     private static final Logger LOG = Logger.getLogger(ttcustController.class.getName());
@@ -29,12 +33,12 @@ public class columnOrderObjectController {
         columnOrderObjectDAO = new columnOrderObjectDAO();
     }
     @GetMapping("/{identity}")
-    public ResponseEntity<columnOrderObject> getColoo(@PathVariable String identity){
+    public ResponseEntity<dataColumn[]> getColoo(@PathVariable String identity){
         LOG.info("GET /coloo/" + identity);
         try {
-            columnOrderObject result = columnOrderObjectDAO.getColumnOrderByUserAndColumnId(identity);
+            dataColumn[] result = columnOrderObjectDAO.getColumnOrderByUserAndColumnId(identity);
             if (result != null){
-                return new ResponseEntity<columnOrderObject>(result, HttpStatus.OK);
+                return new ResponseEntity<dataColumn[]>(result, HttpStatus.OK);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
@@ -80,7 +84,7 @@ public class columnOrderObjectController {
     public ResponseEntity<columnOrderObject> createColoo(@RequestBody columnOrderObject coloo){
         LOG.info("POST /coloo" + coloo);
         try {
-            columnOrderObject testColoo = columnOrderObjectDAO.getColumnOrderByUserAndColumnId(coloo.getUserId()+"|"+coloo.getColumnId());
+            dataColumn[] testColoo = columnOrderObjectDAO.getColumnOrderByUserAndColumnId(coloo.getUserId()+coloo.getColumnId()); //changed |
             if (testColoo != null){
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
             }

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.backend.ttcust_api.model.columnOrderObject;
+import com.backend.ttcust_api.model.dataColumn;
 
 public class columnOrderObjectDAO {
     private String filename = "data/columnOrder.json";
@@ -54,7 +55,7 @@ public class columnOrderObjectDAO {
         columnOrderObject[] listColumnOrderObjects = objectMapper.readValue(new File(filename), columnOrderObject[].class);
 
         for (columnOrderObject columnOrder: listColumnOrderObjects) {
-            columnOrders.put(columnOrder.getUserId() + "|" + columnOrder.getColumnId(), columnOrder);
+            columnOrders.put(columnOrder.getUserId() + columnOrder.getColumnId(), columnOrder); //changed |
         }
         return true;
     }
@@ -86,20 +87,25 @@ public class columnOrderObjectDAO {
         }
     }
 
-    public columnOrderObject getColumnOrderByUserAndColumnId(String identification){
+    public dataColumn[] getColumnOrderByUserAndColumnId(String identification){
         synchronized(columnOrders){
-            return columnOrders.get(identification);
+            columnOrderObject col = columnOrders.get(identification);
+            if (col == null){
+                return null;
+            } else {
+                return col.getDataColumns();
+            }
         }
     }
 
     public columnOrderObject createColumnOrderObject(columnOrderObject col) throws IOException{
         synchronized(columnOrders){
-            columnOrderObject notThere = columnOrders.get(col.getUserId() + "|" + col.getColumnId());
+            columnOrderObject notThere = columnOrders.get(col.getUserId()  + col.getColumnId()); //changed |
             if (notThere != null){
                 return null;
             }
             columnOrderObject newCo = new columnOrderObject(col.getUserId(), col.getColumnId(), col.getDataColumns());
-            columnOrders.put(newCo.getUserId() + "|" + newCo.getColumnId(), newCo);
+            columnOrders.put(newCo.getUserId() + newCo.getColumnId(), newCo); //changed |
             save();
             return newCo;
         }
@@ -107,10 +113,10 @@ public class columnOrderObjectDAO {
 
     public columnOrderObject updateColumnOrderObject(columnOrderObject col) throws IOException{
         synchronized(columnOrders){
-            if (columnOrders.containsKey(col.getUserId() + "|" + col.getColumnId()) == false){
+            if (columnOrders.containsKey(col.getUserId() + col.getColumnId()) == false){ //changed |
                 return null;
             }
-            columnOrders.put(col.getUserId()+"|"+col.getColumnId(), col);
+            columnOrders.put(col.getUserId()+col.getColumnId(), col); //changed |
             save();
             return col;
         }

@@ -1,6 +1,5 @@
 package com.backend.ttcust_api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class dataColumn {
@@ -10,6 +9,9 @@ public class dataColumn {
     private int orderIndex;
     private String width;
 
+    public dataColumn(){
+        
+    }
     public dataColumn(String field, String title, int orderIndex, String width){
         this.field = field;
         this.title = title;
