@@ -3,21 +3,23 @@ import { Error } from '@progress/kendo-react-labels';
 import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
 import "@progress/kendo-theme-default/dist/all.css"
+import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 
 const loginUrl = "http://localhost:8080/jttcust/login"
-const handleSubmit = async (dataItem: { [Username: string]: any }) => {
-    const username = dataItem.Username as string;
-    console.log(username)
-    const response = await fetch(loginUrl + "/" + username)
-    console.log(response)
-}
+
+
 
 
 
 
 
 export function Login() {
+    const navigate = useNavigate();
+    const goToDataPage = () => {
+        navigate('/data'); 
+    };
     const handleSubmit = async (dataItem: { [Username: string]: any }) => {
         const username = dataItem.Username as string;
         const response = await fetch(loginUrl + "/" + username)
@@ -29,6 +31,7 @@ export function Login() {
             }
         } else {
             //route to login
+            goToDataPage();
         }
     }
     return(
