@@ -130,12 +130,12 @@ const ttcustDataGrid = () => {
         autoProcessData={true}
         pageable={true}
         filterable={true}
-        skip={0}
-        take={15}
+        defaultSkip={0}
+        defaultTake={15}
         reorderable={true}
         resizable={true}
         onColumnReorder={handleColumnReorder}
-        
+
         >
         {cols.map((col) => (
           <GridColumn key={col.field} field={col.field} title={col.title} orderIndex={col.orderIndex} width={col.width}></GridColumn>
