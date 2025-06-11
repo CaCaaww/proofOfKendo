@@ -18,6 +18,19 @@ const handleSubmit = async (dataItem: { [Username: string]: any }) => {
 
 
 export function Login() {
+    const handleSubmit = async (dataItem: { [Username: string]: any }) => {
+        const username = dataItem.Username as string;
+        const response = await fetch(loginUrl + "/" + username)
+        if (!response.ok){
+            if (response.status != 404){
+                alert(JSON.stringify("Error"))
+            } else {
+                alert(JSON.stringify("Bad Login Credentials"))
+            }
+        } else {
+            //route to login
+        }
+    }
     return(
         <Form
             onSubmit={handleSubmit}
