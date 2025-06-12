@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import {Grid, GridColumn} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Button } from '@progress/kendo-react-buttons';
 
 //import './App.css'
 
 const url = 'http://localhost:8080/jttcust'
 const colooUrl = 'http://localhost:8080/coloo'
-const userId = 'IMS'
+
 //column Id is: custData
 
 
@@ -22,6 +24,9 @@ interface column {
   orderIndex: number;
   width: string;
 }
+interface RouteParams {
+  userId : string;
+}
 const initialColumns = [
   { field: "customer", title: "Customer ID", orderIndex: 0, width: '150px'},
   { field: "bill-to-city", title: "City", orderIndex: 1, width: '120px' },
@@ -31,7 +36,10 @@ const initialColumns = [
 
 
 
-const ttcustDataGrid = () => {
+const ttcustDataGrid : React.FC = () => {
+  const { id } = useParams()
+  const userId = id as string;
+  const navigate = useNavigate()
 
   const [cols, setCols] = useState<column[]>(initialColumns);
   const [custs, setCusts] = useState<Customer[]>([]);
@@ -141,7 +149,7 @@ const ttcustDataGrid = () => {
           <GridColumn key={col.field} field={col.field} title={col.title} orderIndex={col.orderIndex} width={col.width}></GridColumn>
         ))}
       </Grid>
-      
+      <Button onClick = {() => navigate("/")}> Logout </Button>
     </div>
   );
   
