@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.backend.ttcust_api.model.seqData;
 import com.backend.ttcust_api.model.ttcust;
 import com.backend.ttcust_api.persistance.jttcustDAO;
 
@@ -31,6 +32,7 @@ public class jttcustController {
     public jttcustController() throws IOException{
         jttcustDAO = new jttcustDAO();
     }
+
     @GetMapping("/login/{username}")
     public ResponseEntity<String> loginAttempt(@PathVariable String username){
         LOG.info("GET /login/" + username);
@@ -45,6 +47,19 @@ public class jttcustController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/seqData/{custId}")
+    public ResponseEntity<seqData[]> getSeqDataByCustId(@PathVariable String custId){
+        LOG.info("Get /seqData/" + custId);
+        try{
+            seqData[] result = jttcustDAO.getSecData(custId);
+            return new ResponseEntity<seqData[]>(result, HttpStatus.OK);
+        } catch (Exception e){
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     @GetMapping("/{custID}")
     public ResponseEntity<ttcust> getTtcust(@PathVariable String custID){
         LOG.info("GET /jttcust/" + custID);

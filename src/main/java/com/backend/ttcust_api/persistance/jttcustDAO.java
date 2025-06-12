@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import com.backend.ttcust_api.model.seqData;
 import com.backend.ttcust_api.model.ttcust;
 
 // import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
@@ -106,6 +107,30 @@ public class jttcustDAO {
 
     public ttcust[] getAllTtcusts(){
         return getTtcustsByMatchingX(null, null);
+    }
+
+    public seqData[] getSecData(String custId){
+        try{
+            String query = "";
+                query = "SELECT Customer, \"seq-pre\", \"seq-num\" FROM pub.sox WHERE Customer = \'" + custId + "\'";
+            Statement statement = con.createStatement();
+            // execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery(query);
+            ArrayList<seqData> seqDataArrayList = new ArrayList<>();
+            while (resultSet.next()){
+                String Customer = resultSet.getString("Customer");
+                String seqPre = resultSet.getString("seq-pre");
+                int seqNum = resultSet.getInt("seq-num");
+                //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
+                seqDataArrayList.add(new seqData(Customer, seqPre, seqNum));
+            }
+            seqData[] result = new seqData[seqDataArrayList.size()];
+            seqDataArrayList.toArray(result);
+            return result;
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
     }
 
 
