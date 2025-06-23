@@ -140,13 +140,58 @@ const ttcustDataGrid : React.FC = () => {
     fetchCols();
   }, []);
 
-  
+  const onColumnResize = (event: any) => {
+    // console.log(` new width: ${event.newWidth}`);
+    // console.log(event.index);
+    // console.log(cols)
+    const newCols = cols;
+    newCols.forEach( (element) => {
+      if (element.orderIndex == event.index){
+        element.width = event.newWidth;
+      }
+    })
+    //console.log(newCols);
+    const updateColumns = async () => {
+      const responseUpdate = await fetch("http://localhost:8080/coloo", {
+        method: "PUT",
+        headers: {
+                'Content-Type': 'application/json',
+              },
+        body: JSON.stringify({"userId": userId, "columnId": "custData", "dataColumns": newCols as column[]})
+      });
+      setCols(newCols);
+      //console.log(responseUpdate);
+    }
+    updateColumns();
+  };
+
+  const onColumnResize2 = (event: any) => {
+    const newCols2 = cols2;
+    newCols2.forEach( (element) => {
+      if (element.orderIndex == event.index){
+        element.width = event.newWidth;
+      }
+    })
+    //console.log(newCols);
+    const updateColumns = async () => {
+      const responseUpdate = await fetch("http://localhost:8080/coloo", {
+        method: "PUT",
+        headers: {
+                'Content-Type': 'application/json',
+              },
+        body: JSON.stringify({"userId": userId, "columnId": "seqData", "dataColumns": newCols2 as column[]})
+      });
+      setCols2(newCols2);
+      console.log(responseUpdate);
+    }
+    updateColumns();
+  };
 
   const handleColumnReorder = (event: { columns: any; }) => {
     const reorderedColumns = event.columns;
     //console.log("COlUMNS CHANGED ORDER")
-    const test = reorderedColumns as column[]
-    console.log(test[0].width)
+    //const test = reorderedColumns as column[]
+    //console.log(test[0].width)
     const updateColumns = async () => {
       const responseUpdate = await fetch("http://localhost:8080/coloo", {
         method: "PUT",
@@ -155,9 +200,10 @@ const ttcustDataGrid : React.FC = () => {
               },
         body: JSON.stringify({"userId": userId, "columnId": "custData", "dataColumns": reorderedColumns as column[]})
       });
+      setCols(reorderedColumns);
       console.log(responseUpdate);
     }
-    //setCols(reorderedColumns);
+    
     updateColumns();
     
   };
@@ -173,9 +219,10 @@ const ttcustDataGrid : React.FC = () => {
               },
         body: JSON.stringify({"userId": userId, "columnId": "seqData", "dataColumns": reorderedColumns as column[]})
       });
+      setCols2(reorderedColumns);
       console.log(responseUpdate);
     }
-    //setCols2(reorderedColumns);
+    
     updateColumns();
     //
   };
@@ -217,7 +264,7 @@ const ttcustDataGrid : React.FC = () => {
         reorderable={true}
         resizable={true}
         onColumnReorder={handleColumnReorder}
-        onColumnResize={handleColumnReorder}
+        onColumnResize={onColumnResize}
         onRowClick={handleRowClick}
         >
         {cols.map((col) => (
@@ -239,7 +286,7 @@ const ttcustDataGrid : React.FC = () => {
         reorderable={true}
         resizable={true}
         onColumnReorder={handleColumnReorder2}
-        onColumnResize={handleColumnReorder2}
+        onColumnResize={onColumnResize2}
       >
         {cols2.map((col) => (
           <GridColumn key={col.field} field={col.field} title={col.title} orderIndex={col.orderIndex} width={col.width}></GridColumn>
