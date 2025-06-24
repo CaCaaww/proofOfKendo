@@ -101,7 +101,15 @@ const ttcustDataGrid : React.FC = () => {
     fetchCusts();
   }, []);
 
-  //const data = process(custs, { skip: page.skip, take: page.take });
+  function getPageInfo() : string {
+    const result = "OFFSET " + page.skip as string + " ROWS FETCH NEXT " + page.take as string + " ROWS ONLY ";
+    return result;
+  }
+
+  function getSortInfo() : string {
+    const result = "ORDER BY \"" + sort[0] as string + "\" " + sort[1] as string;
+    return result;
+  }
 
   const fetchCustsBtw = async (skip : number, take  : number) => {
     try {
@@ -118,7 +126,14 @@ const ttcustDataGrid : React.FC = () => {
   
   const fetchCustsWithSQL = async(options : string) => {
     try {
-
+      console.log("OPTIONS:")
+      console.log(options)
+      const response = await fetch(url + "/sql/" + options);
+      if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+      const data: Customer[] = await response.json();
+      setCusts(data)
     } catch (err){
       setError((err as Error).message);
     }
@@ -129,16 +144,21 @@ const ttcustDataGrid : React.FC = () => {
     //console.log(({...event.sort})[0].field)
     const evsort = ({...event.sort})
     //console.log({...event.sort}[0] == undefined)
+    var queryOptions = "";
     if (evsort[0] != undefined){
       setSort(
         [evsort[0].field, evsort[0].dir]
       );
+      queryOptions += "ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
     } else {
       setSort(
         ["Customer", "asc"]
       )
+      queryOptions += "ORDER BY Customer asc";
     }
-    
+    queryOptions += " " + getPageInfo();
+    //console.log(queryOptions);
+    fetchCustsWithSQL(queryOptions);
   }
   const pageChange = (event: GridPageChangeEvent) => {
         const targetEvent = event.targetEvent as PagerTargetEvent;
@@ -154,8 +174,9 @@ const ttcustDataGrid : React.FC = () => {
         const newSkip = {...event.page}.skip
         const newPage = {...event.page}.take
         //console.log(page.skip)
-        fetchCustsBtw(newSkip, newPage);
-        
+        //fetchCustsBtw(newSkip, newPage);
+        var queryOptions = getSortInfo() + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+        fetchCustsWithSQL(queryOptions);
     };
 
 
