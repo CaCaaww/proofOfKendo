@@ -89,6 +89,30 @@ public class jttcustController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    //takes sql query option to run on the ttcust data. Used for sorting and filtering.
+    @GetMapping("/sql/{queryOptions}")
+    public ResponseEntity<ttcust[]> getTtcustsWithOptions(@PathVariable String queryOptions){
+        LOG.info("GET /jttcust/sql/" + queryOptions);
+        try {
+            ttcust[] result = jttcustDAO.getTtcustsWithSQLOptions(queryOptions);
+            return new ResponseEntity<ttcust[]>(result, HttpStatus.OK);
+        } catch (Exception e){
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    //get total amount of custs
+    @GetMapping("/total")
+    public ResponseEntity<String> getNumberOfTtcusts(){
+        LOG.info("GET /jttcust/total");
+        try {
+            String result = jttcustDAO.getNumCusts() + "";
+            return new ResponseEntity<String>(result, HttpStatus.OK);
+        } catch (Exception e){
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     @GetMapping("")
     public ResponseEntity<ttcust[]> getTtcust(){
         LOG.info("GET /jttcust");

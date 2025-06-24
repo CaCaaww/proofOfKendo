@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import {Grid, GridColumn, GridPageChangeEvent} from '@progress/kendo-react-grid';
+import {Grid, GridColumn, GridPageChangeEvent, GridSortChangeEvent} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@progress/kendo-react-buttons';
 import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
+import { process } from '@progress/kendo-data-query';
 
 //import './App.css'
 
@@ -52,9 +53,12 @@ const ttcustDataGrid : React.FC = () => {
   const { id } = useParams()
   const userId = id as string;
   const navigate = useNavigate()
+  const [total, setTotal] = useState<number> (0);
 
   const [page, setPage] = useState<PageState>(initialDataState);
   const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
+
+  const [sort, setSort] = useState<[string, string | undefined]>(["customer", "asc"]);
 
   const [data2, setData2] = useState<SEQ_Data[]>([]);
   const [cols, setCols] = useState<column[]>(initialColumns);
@@ -63,11 +67,24 @@ const ttcustDataGrid : React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchTotal = async() => {
+    try {
+      const result = await fetch(url + "/total")
+      if (!result.ok){
+        throw new Error(`Error: ${result.statusText}`);
+      }
+      setTotal(await result.json());
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+  fetchTotal();
+
   useEffect(() => {
     const fetchCusts = async () => {
       try {
         const response = await
-        fetch(url);
+        fetch(url + "/btw/" + page.take + "," + page.skip);
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
@@ -84,8 +101,45 @@ const ttcustDataGrid : React.FC = () => {
     fetchCusts();
   }, []);
 
-  //const data = process(products, { skip: page.skip, take: page.take });
+  //const data = process(custs, { skip: page.skip, take: page.take });
 
+  const fetchCustsBtw = async (skip : number, take  : number) => {
+    try {
+      const response = await fetch(url + "/btw/" + take + "," + skip);
+      if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+      const data: Customer[] = await response.json();
+      setCusts(data)
+    } catch (err){
+      setError((err as Error).message);
+    }
+  }
+  
+  const fetchCustsWithSQL = async(options : string) => {
+    try {
+
+    } catch (err){
+      setError((err as Error).message);
+    }
+  }
+
+  const sortChange = (event: GridSortChangeEvent) => {
+    console.log(event);
+    //console.log(({...event.sort})[0].field)
+    const evsort = ({...event.sort})
+    //console.log({...event.sort}[0] == undefined)
+    if (evsort[0] != undefined){
+      setSort(
+        [evsort[0].field, evsort[0].dir]
+      );
+    } else {
+      setSort(
+        ["Customer", "asc"]
+      )
+    }
+    
+  }
   const pageChange = (event: GridPageChangeEvent) => {
         const targetEvent = event.targetEvent as PagerTargetEvent;
         const take = targetEvent.value === 'All' ? custs.length : event.page.take;
@@ -97,6 +151,11 @@ const ttcustDataGrid : React.FC = () => {
             ...event.page,
             take
         });
+        const newSkip = {...event.page}.skip
+        const newPage = {...event.page}.take
+        //console.log(page.skip)
+        fetchCustsBtw(newSkip, newPage);
+        
     };
 
 
@@ -279,14 +338,16 @@ const ttcustDataGrid : React.FC = () => {
         style={{ height: '700px'}} 
         data={custs}
         dataItemKey='customer' 
+
         sortable={true}
-        autoProcessData={true}
-        
-        filterable={true}
+        onSortChange={sortChange}
+
+        autoProcessData={false}
+        filterable={false}
 
         skip={page.skip}
         take={page.take}
-        total={custs.length}
+        total={total}
         
         reorderable={true}
         resizable={true}

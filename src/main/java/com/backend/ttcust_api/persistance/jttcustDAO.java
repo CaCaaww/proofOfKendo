@@ -35,6 +35,7 @@ public class jttcustDAO {
         }  catch (Exception e) {
             System.out.println("ERROR:");
             e.printStackTrace();
+            
         }
         
     }
@@ -61,6 +62,8 @@ public class jttcustDAO {
                 String userId = resultSet.getString("User-id");
                 usernameArrayList.add(userId);
             }
+            resultSet.close();
+            statement.close();
             return usernameArrayList.get(0);
         } catch (Exception e){
             System.out.println(e);
@@ -90,6 +93,8 @@ public class jttcustDAO {
             }
             ttcust[] result = new ttcust[ttcustArrayList.size()];
             ttcustArrayList.toArray(result);
+            resultSet.close();
+            statement.close();
             return result;
         } catch (Exception e){
             System.out.println(e);
@@ -133,6 +138,56 @@ public class jttcustDAO {
             }
             ttcust[] result = new ttcust[ttcustArrayList.size()];
             ttcustArrayList.toArray(result);
+            resultSet.close();
+            statement.close();
+            return result;
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    public int getNumCusts(){
+        try {
+            String query = "";
+            query = "SELECT count(Customer) FROM pub.cus";
+            Statement statement = con.createStatement();
+            ResultSet result = statement.executeQuery(query);
+            int num = 0;
+            while (result.next()){
+                num = result.getInt("count(Customer)");
+            }
+            result.close();
+            statement.close();
+            return num;
+
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return 0;
+        
+
+    }
+
+    public ttcust[] getTtcustsWithSQLOptions(String options){
+        try {
+            String query = "SELECT Customer, NAME, \"bill-to-city\", \"bill-to-state\" FROM pub.cus " + options ;
+            Statement statement = con.createStatement();
+            // execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery(query);
+            ArrayList<ttcust> ttcustArrayList = new ArrayList<>();
+            while (resultSet.next()){
+                 String Customer = resultSet.getString("Customer");
+                String NAME = resultSet.getString("NAME");
+                String city = resultSet.getString("bill-to-city");
+                String state = resultSet.getString("bill-to-state");
+                //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
+                ttcustArrayList.add(new ttcust(Customer, NAME, city, state));
+            }
+            ttcust[] result = new ttcust[ttcustArrayList.size()];
+            ttcustArrayList.toArray(result);
+            resultSet.close();
+            statement.close();
             return result;
         } catch (Exception e){
             System.out.println(e);
@@ -157,6 +212,8 @@ public class jttcustDAO {
             }
             seqData[] result = new seqData[seqDataArrayList.size()];
             seqDataArrayList.toArray(result);
+            resultSet.close();
+            statement.close();
             return result;
         } catch (Exception e){
             System.out.println(e);
