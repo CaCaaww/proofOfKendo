@@ -48,6 +48,7 @@ public class jttcustController {
         }
     }
 
+    //getting all the seqData
     @GetMapping("/seqData/{custId}")
     public ResponseEntity<seqData[]> getSeqDataByCustId(@PathVariable String custId){
         LOG.info("Get /seqData/" + custId);
@@ -59,7 +60,7 @@ public class jttcustController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     @GetMapping("/{custID}")
     public ResponseEntity<ttcust> getTtcust(@PathVariable String custID){
         LOG.info("GET /jttcust/" + custID);
@@ -70,6 +71,20 @@ public class jttcustController {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //get ttcusts with indexes between num. Used for paging
+    //INPUT FORMAT: <Limit>,<Offset>
+    @GetMapping("/btw/{numsBetween}")
+    public ResponseEntity<ttcust[]> getTtcustsBetweenIndexes(@PathVariable String numsBetween){
+        LOG.info("GET /jttcust/btw/" + numsBetween);
+        try {
+            ttcust[] result = jttcustDAO.getCustsBetweenIndex(numsBetween);
+            return new ResponseEntity<ttcust[]>(result, HttpStatus.OK);
+        } catch (Exception e){
             LOG.log(Level.SEVERE, e.getLocalizedMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

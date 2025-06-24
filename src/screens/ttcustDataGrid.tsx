@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import {Grid, GridColumn} from '@progress/kendo-react-grid';
+import {Grid, GridColumn, GridPageChangeEvent} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@progress/kendo-react-buttons';
+import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
 
 //import './App.css'
 
@@ -28,6 +29,11 @@ interface column {
   orderIndex: number;
   width: string;
 }
+interface PageState {
+  skip: number;
+  take: number;
+}
+const initialDataState: PageState = { skip: 0, take: 15 };
 const initialColumns = [
   { field: "customer", title: "Customer ID", orderIndex: 0, width: '150px'},
   { field: "bill-to-city", title: "City", orderIndex: 1, width: '120px' },
@@ -47,12 +53,16 @@ const ttcustDataGrid : React.FC = () => {
   const userId = id as string;
   const navigate = useNavigate()
 
+  const [page, setPage] = useState<PageState>(initialDataState);
+  const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
+
   const [data2, setData2] = useState<SEQ_Data[]>([]);
   const [cols, setCols] = useState<column[]>(initialColumns);
   const [cols2, setCols2] = useState<column[]>(initialData2Columns)
   const [custs, setCusts] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchCusts = async () => {
       try {
@@ -74,7 +84,21 @@ const ttcustDataGrid : React.FC = () => {
     fetchCusts();
   }, []);
 
-  
+  //const data = process(products, { skip: page.skip, take: page.take });
+
+  const pageChange = (event: GridPageChangeEvent) => {
+        const targetEvent = event.targetEvent as PagerTargetEvent;
+        const take = targetEvent.value === 'All' ? custs.length : event.page.take;
+        console.log(event)
+        if (targetEvent.value) {
+            setPageSizeValue(targetEvent.value);
+        }
+        setPage({
+            ...event.page,
+            take
+        });
+    };
+
 
   
 
@@ -257,12 +281,23 @@ const ttcustDataGrid : React.FC = () => {
         dataItemKey='customer' 
         sortable={true}
         autoProcessData={true}
-        pageable={true}
+        
         filterable={true}
-        defaultSkip={0}
-        defaultTake={15}
+
+        skip={page.skip}
+        take={page.take}
+        total={custs.length}
+        
         reorderable={true}
         resizable={true}
+
+        pageable={{
+          buttonCount: 4,
+          pageSizes: [5, 10, 15, 'All'],
+          pageSizeValue: pageSizeValue
+        }}
+        onPageChange={pageChange}
+
         onColumnReorder={handleColumnReorder}
         onColumnResize={onColumnResize}
         onRowClick={handleRowClick}

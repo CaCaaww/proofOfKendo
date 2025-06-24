@@ -12,7 +12,7 @@ import com.backend.ttcust_api.model.ttcust;
 public class jttcustDAO {
     
 
-    private String jdbcURL = "jdbc:datadirect:openedge://192.168.12.34:15020;databaseName=tmm10";
+    private String jdbcURL = "jdbc:datadirect:openedge://192.168.12.35:15020;databaseName=tmm10";
     private String username = "sysprogress";
     private String password;
     private Connection con;
@@ -107,6 +107,37 @@ public class jttcustDAO {
 
     public ttcust[] getAllTtcusts(){
         return getTtcustsByMatchingX(null, null);
+    }
+    
+    public ttcust[] getCustsBetweenIndex(String indexes){
+        try {
+            int divider = indexes.indexOf(",");
+            if (divider == -1){
+                System.out.println("BAD INPUT");
+                return null;
+            }
+            String limit = indexes.substring(0, divider);
+            String offset = indexes.substring(divider + 1);
+            String query = "SELECT Customer, NAME, \"bill-to-city\", \"bill-to-state\" FROM pub.cus OFFSET " + offset + "ROWS FETCH NEXT " + limit + "ROWS ONLY" ;
+            Statement statement = con.createStatement();
+            // execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery(query);
+            ArrayList<ttcust> ttcustArrayList = new ArrayList<>();
+            while (resultSet.next()){
+                 String Customer = resultSet.getString("Customer");
+                String NAME = resultSet.getString("NAME");
+                String city = resultSet.getString("bill-to-city");
+                String state = resultSet.getString("bill-to-state");
+                //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
+                ttcustArrayList.add(new ttcust(Customer, NAME, city, state));
+            }
+            ttcust[] result = new ttcust[ttcustArrayList.size()];
+            ttcustArrayList.toArray(result);
+            return result;
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
     }
 
     public seqData[] getSecData(String custId){
