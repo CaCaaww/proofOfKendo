@@ -90,12 +90,20 @@ public class jttcustController {
         }
     }
     //takes sql query option to run on the ttcust data. Used for sorting and filtering.
+    //Return is a ResponseEntity that is a list of one of the dataTypes.
     @GetMapping("/sql/{columnId}/{queryOptions}")
-    public ResponseEntity<ttcust[]> getTtcustsWithOptions(@PathVariable String columnId, @PathVariable String queryOptions){
-        LOG.info("GET /jttcust/sql/" + queryOptions);
+    public Object getTtcustsWithOptions(@PathVariable String columnId, @PathVariable String queryOptions){
+        LOG.info("GET /jttcust/sql/" + columnId + "/" + queryOptions);
         try {
-            ttcust[] result = jttcustDAO.getTtcustsWithSQLOptions(queryOptions);
-            return new ResponseEntity<ttcust[]>(result, HttpStatus.OK);
+            if (columnId.equals("custData")){
+                ttcust[] result = jttcustDAO.getTtcustsWithSQLOptions(queryOptions);
+                return new ResponseEntity<ttcust[]>(result, HttpStatus.OK);
+            } else if (columnId.equals("seqData")){
+                seqData[] result = jttcustDAO.getSeqWithSQLOptions(queryOptions);
+                return new ResponseEntity<seqData[]>(result, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
         } catch (Exception e){
             LOG.log(Level.SEVERE, e.getLocalizedMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -103,12 +111,12 @@ public class jttcustController {
     }
     @GetMapping("/{columnId}/total/{queryOptions}")
     public ResponseEntity<String> getNumberOfTtcustsWithOptions(@PathVariable String columnId, @PathVariable String queryOptions){
-        LOG.info("GET /jttcust/sql/total/" + queryOptions);
+        LOG.info("GET /jttcust/" + columnId + "/total/" + queryOptions);
         try {
             if (columnId.equals("custData")){
                 String result = jttcustDAO.getNumCustsWithOptions(queryOptions) + "";
                 return new ResponseEntity<String>(result, HttpStatus.OK);
-            } else if (columnId.equals("seq")){
+            } else if (columnId.equals("seqData")){
                 String result = jttcustDAO.getNumSeqWithOptions(queryOptions) + "";
                 return new ResponseEntity<String>(result, HttpStatus.OK);
             }

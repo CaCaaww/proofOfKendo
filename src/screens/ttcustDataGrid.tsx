@@ -75,8 +75,9 @@ const ttcustDataGrid : React.FC = () => {
   const [numButtons2, setNumButtons2] = useState<number> (5);
   const [sort2, setSort2] = useState<[string, string | undefined]>(["customer", "asc"]);
   const [filter2, setFilter2] = useState<filter | undefined>(undefined);
-
   const [data2, setData2] = useState<SEQ_Data[]>([]);
+  const [clickedCustomer, setClikcedCustomer] = useState<String>();
+  
   const [cols, setCols] = useState<column[]>(initialColumns);
   const [cols2, setCols2] = useState<column[]>(initialData2Columns)
   const [custs, setCusts] = useState<Customer[]>([]);
@@ -175,6 +176,19 @@ const ttcustDataGrid : React.FC = () => {
     }
   }
 
+  const fetchNewSeqTotalWithOptions = async(options: string) => {
+     try {
+      const response = await fetch(url + "/seqData/total/" + options);
+      if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+      const newTotal = await response.json()
+      setTotal2(newTotal);
+    } catch (err){
+      setError((err as Error).message);
+    }
+  }
+
   //function to run the SQL query with the parameters to mimic the paging and additional features.
   const fetchCustsWithSQL = async(options : string) => {
     try {
@@ -184,6 +198,21 @@ const ttcustDataGrid : React.FC = () => {
         }
       const data: Customer[] = await response.json();
       setCusts(data)
+    } catch (err){
+      setError((err as Error).message);
+    }
+  }
+
+  const fetchSeqWithSQL = async(options : string) => {
+    try {
+      console.log("HERE")
+      const response = await fetch(url + "/sql/seqData/" + options);
+      if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+      const newData2: SEQ_Data[] = await response.json();
+      console.log(newData2);
+      setData2(newData2)
     } catch (err){
       setError((err as Error).message);
     }
@@ -280,6 +309,38 @@ const ttcustDataGrid : React.FC = () => {
         }
         fetchCustsWithSQL(queryOptions);
     };
+
+    const pageChange2 = (event: GridPageChangeEvent) => {
+        //fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
+        const targetEvent = event.targetEvent as PagerTargetEvent;
+        //const take = targetEvent.value === 'All' ? custs.length : event.page.take;
+        var take = event.page.take;
+        if (targetEvent.value === 'All'){
+          take = total;
+        }
+        console.log(event)
+        if (targetEvent.value) {
+            setPageSizeValue2(targetEvent.value);
+        }
+        setPage2({
+            ...event.page,
+            take
+        });
+        const newSkip = {...event.page}.skip
+        const newPage = {...event.page}.take
+        var filterInfo = getFilterInfo(filter2);
+        var queryOptions = "";
+        if (filterInfo === "") {
+          queryOptions += "WHERE \"Customer\" = \'" + clickedCustomer + "\' " + getSortInfo(sort2) 
+        } else {
+          queryOptions += filterInfo + " AND \"Customer\" = \'" + clickedCustomer + "\' " + getSortInfo(sort2)
+        }
+        if (targetEvent.value != 'All'){
+          queryOptions += " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+        }
+        fetchSeqWithSQL(queryOptions);
+    };
+
 
 
   
@@ -424,19 +485,23 @@ const ttcustDataGrid : React.FC = () => {
 
   const handleRowClick = (event: { dataItem: any; }) => {
     const dataItem = event.dataItem
-    const addDataToSecondGraph = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/jttcust/seqData/" + dataItem.customer)
-        if (!response.ok){
-          throw new Error(`Error: ${response.statusText}`); 
-        }
-        const result : SEQ_Data[] = await response.json()
-        setData2(result);
-      } catch (error) {
-        console.log(error)
-      } 
-    }
-    addDataToSecondGraph();
+    setClikcedCustomer(dataItem.customer)
+    const dataOptions = "WHERE \"Customer\" = \'" + dataItem.customer + "\' " +  getPageInfo(page2);
+    fetchNewSeqTotalWithOptions(dataOptions)
+    fetchSeqWithSQL(dataOptions);
+    // const addDataToSecondGraph = async () => {
+    //   try {
+    //     const response = await fetch("http://localhost:8080/jttcust/seqData/" + dataItem.customer)
+    //     if (!response.ok){
+    //       throw new Error(`Error: ${response.statusText}`); 
+    //     }
+    //     const result : SEQ_Data[] = await response.json()
+    //     setData2(result);
+    //   } catch (error) {
+    //     console.log(error)
+    //   } 
+    // }
+    // addDataToSecondGraph();
   }
 
   if (loading) return <p>Loading...</p>;
@@ -484,16 +549,20 @@ const ttcustDataGrid : React.FC = () => {
         data={data2}
         dataItemKey='customer'
         
-        sortable={true}
+        sortable={false}
         
-        autoProcessData={true}
-        
-        pageable={true}
+        pageable={{
+          buttonCount: numButtons2,
+          pageSizes: [5, 10, 15, 'All'],
+          pageSizeValue: pageSizeValue2
+        }}
+        onPageChange={pageChange2}
 
-        filterable={true}
+        filterable={false}
 
-        defaultSkip={0}
-        defaultTake={15}
+        skip={page2.skip}
+        take={page2.take}
+        total={total2}
 
         reorderable={true}
         resizable={true}

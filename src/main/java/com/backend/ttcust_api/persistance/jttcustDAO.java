@@ -232,6 +232,45 @@ public class jttcustDAO {
         return 0;
     }
 
+    public seqData[] getSeqWithSQLOptions(String options){
+        try {
+            String reformattedOptions = "";
+            for (int i = 0; i < options.length(); i++){
+                
+                String sub = options.substring(i, i+1);
+                //System.out.println("sub: " + sub);
+                if (sub.equals("*")){
+                    reformattedOptions += "%";
+                } else {
+                    reformattedOptions += sub;
+                }
+
+            }
+            String query = "SELECT Customer, \"seq-pre\", \"seq-num\" FROM pub.sox " + reformattedOptions ;
+            System.out.println("QUERY: " + query);
+            Statement statement = con.createStatement();
+            // execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery(query);
+            ArrayList<seqData> seqDataArrayList = new ArrayList<>();
+            while (resultSet.next()){
+                String Customer = resultSet.getString("Customer");
+                String seqPre = resultSet.getString("seq-pre");
+                int seqNum = resultSet.getInt("seq-num");
+                //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
+                seqDataArrayList.add(new seqData(Customer, seqPre, seqNum));
+            }
+            seqData[] result = new seqData[seqDataArrayList.size()];
+            seqDataArrayList.toArray(result);
+            resultSet.close();
+            statement.close();
+            return result;
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
+    }
+
+
     public ttcust[] getTtcustsWithSQLOptions(String options){
         try {
             String reformattedOptions = "";
