@@ -12,7 +12,7 @@ import com.backend.ttcust_api.model.ttcust;
 public class jttcustDAO {
     
 
-    private String jdbcURL = "jdbc:datadirect:openedge://192.168.12.35:15020;databaseName=tmm10";
+    private String jdbcURL = "jdbc:datadirect:openedge://192.168.12.35:15020;databaseName=tmm10;";
     private String username = "sysprogress";
     private String password;
     private Connection con;
@@ -30,6 +30,7 @@ public class jttcustDAO {
 
             Class.forName ( "com.ddtek.jdbc.openedge.OpenEdgeDriver");
             con = DriverManager.getConnection ( jdbcURL, username, password );
+            con.setTransactionIsolation(1);
             System.out.println("NO ERRORS THROWN WHEN TRYING TO CONNECT");
 
         }  catch (Exception e) {
@@ -167,6 +168,68 @@ public class jttcustDAO {
         return 0;
         
 
+    }
+    public int getNumCustsWithOptions(String queryOptions){
+        try {
+            String reformattedOptions = "";
+            for (int i = 0; i < queryOptions.length(); i++){
+                
+                String sub = queryOptions.substring(i, i+1);
+                //System.out.println("sub: " + sub);
+                if (sub.equals("*")){
+                    reformattedOptions += "%";
+                } else {
+                    reformattedOptions += sub;
+                }
+
+            }
+            String query = "";
+            query = "SELECT count(Customer) FROM pub.cus " + reformattedOptions;
+            Statement statement = con.createStatement();
+            ResultSet result = statement.executeQuery(query);
+            int num = 0;
+            while (result.next()){
+                num = result.getInt("count(Customer)");
+            }
+            result.close();
+            statement.close();
+            return num;
+
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return 0;
+    }
+    public int getNumSeqWithOptions(String queryOptions){
+        try {
+            String reformattedOptions = "";
+            for (int i = 0; i < queryOptions.length(); i++){
+                
+                String sub = queryOptions.substring(i, i+1);
+                //System.out.println("sub: " + sub);
+                if (sub.equals("*")){
+                    reformattedOptions += "%";
+                } else {
+                    reformattedOptions += sub;
+                }
+
+            }
+            String query = "";
+            query = "SELECT count(Customer) FROM pub.sox " + reformattedOptions;
+            Statement statement = con.createStatement();
+            ResultSet result = statement.executeQuery(query);
+            int num = 0;
+            while (result.next()){
+                num = result.getInt("count(Customer)");
+            }
+            result.close();
+            statement.close();
+            return num;
+
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return 0;
     }
 
     public ttcust[] getTtcustsWithSQLOptions(String options){

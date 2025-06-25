@@ -90,12 +90,29 @@ public class jttcustController {
         }
     }
     //takes sql query option to run on the ttcust data. Used for sorting and filtering.
-    @GetMapping("/sql/{queryOptions}")
-    public ResponseEntity<ttcust[]> getTtcustsWithOptions(@PathVariable String queryOptions){
+    @GetMapping("/sql/{columnId}/{queryOptions}")
+    public ResponseEntity<ttcust[]> getTtcustsWithOptions(@PathVariable String columnId, @PathVariable String queryOptions){
         LOG.info("GET /jttcust/sql/" + queryOptions);
         try {
             ttcust[] result = jttcustDAO.getTtcustsWithSQLOptions(queryOptions);
             return new ResponseEntity<ttcust[]>(result, HttpStatus.OK);
+        } catch (Exception e){
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/{columnId}/total/{queryOptions}")
+    public ResponseEntity<String> getNumberOfTtcustsWithOptions(@PathVariable String columnId, @PathVariable String queryOptions){
+        LOG.info("GET /jttcust/sql/total/" + queryOptions);
+        try {
+            if (columnId.equals("custData")){
+                String result = jttcustDAO.getNumCustsWithOptions(queryOptions) + "";
+                return new ResponseEntity<String>(result, HttpStatus.OK);
+            } else if (columnId.equals("seq")){
+                String result = jttcustDAO.getNumSeqWithOptions(queryOptions) + "";
+                return new ResponseEntity<String>(result, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e){
             LOG.log(Level.SEVERE, e.getLocalizedMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

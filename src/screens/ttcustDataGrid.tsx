@@ -62,12 +62,19 @@ const ttcustDataGrid : React.FC = () => {
   const [total, setTotal] = useState<number> (0);
   const [numButtons, setNumButtons] = useState<number> (5);
 
+  
+
   const [page, setPage] = useState<PageState>(initialDataState);
   const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
-
   const [sort, setSort] = useState<[string, string | undefined]>(["customer", "asc"]);
-  
   const [filter, setFilter] = useState<filter | undefined>(undefined);
+
+  const [page2, setPage2] = useState<PageState>(initialDataState);
+  const [pageSizeValue2, setPageSizeValue2] = useState<number | string | undefined>();
+  const [total2, setTotal2] = useState<number> (0);
+  const [numButtons2, setNumButtons2] = useState<number> (5);
+  const [sort2, setSort2] = useState<[string, string | undefined]>(["customer", "asc"]);
+  const [filter2, setFilter2] = useState<filter | undefined>(undefined);
 
   const [data2, setData2] = useState<SEQ_Data[]>([]);
   const [cols, setCols] = useState<column[]>(initialColumns);
@@ -95,14 +102,15 @@ const ttcustDataGrid : React.FC = () => {
   useEffect(() => {
     const fetchCusts = async () => {
       try {
-        const response = await
-        fetch(url + "/btw/" + page.take + "," + page.skip);
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-        const data: Customer[] = await response.json();
-        //console.log(data)
-        setCusts(data)
+        // const response = await
+        // fetch(url + "/btw/" + page.take + "," + page.skip);
+        // if (!response.ok) {
+        //   throw new Error(`Error: ${response.statusText}`);
+        // }
+        // const data: Customer[] = await response.json();
+        // //console.log(data)
+        // setCusts(data)
+        fetchCustsWithSQL(getPageInfo(page));
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -113,72 +121,64 @@ const ttcustDataGrid : React.FC = () => {
     fetchCusts();
   }, []);
 
-  function getFilterInfo() : string {
+  // getting info for the different parts of the SQL query
+  function getFilterInfo(filterInfo : filter | undefined) : string {
     var queryOptions = ""
-    if (filter != undefined) {
-      switch(filter.operator){
+    if (filterInfo != undefined) {
+      switch(filterInfo.operator){
           case('contains'):
-            queryOptions += "WHERE \"" + filter.field + "\" LIKE \'*" + filter.value +"*\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" LIKE \'*" + filterInfo.value +"*\'"
             break;
           case("doesnotcontain"):
-            queryOptions += "WHERE \"" + filter.field + "\" NOT LIKE \'*" + filter.value +"*\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" NOT LIKE \'*" + filterInfo.value +"*\'"
             break;
           case('eq'):
-            queryOptions += "WHERE \"" + filter.field + "\" = \'" + filter.value +"\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" = \'" + filterInfo.value +"\'"
             break;
           case('neq'):
-            queryOptions += "WHERE \"" + filter.field + "\" != \'" + filter.value +"\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" != \'" + filterInfo.value +"\'"
             break;
           case('startswith'):
-            queryOptions += "WHERE \"" + filter.field + "\" LIKE \'" + filter.value +"*\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" LIKE \'" + filterInfo.value +"*\'"
             break;
           case('endswith'):
-            queryOptions += "WHERE \"" + filter.field + "\" LIKE \'*" + filter.value +"\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" LIKE \'*" + filterInfo.value +"\'"
             break;
           case('isnull'):
-            queryOptions += "WHERE \"" + filter.field + "\" = \'\'"
+            queryOptions += "WHERE \"" + filterInfo.field + "\" = \'\'"
             break;
       }
     } 
     return queryOptions;
   }
-  function getPageInfo() : string {
-    const result = "OFFSET " + page.skip as string + " ROWS FETCH NEXT " + page.take as string + " ROWS ONLY ";
+  function getPageInfo(pageInfo : PageState) : string {
+    const result = "OFFSET " + pageInfo.skip as string + " ROWS FETCH NEXT " + pageInfo.take as string + " ROWS ONLY ";
     return result;
   }
 
-  function getSortInfo() : string {
-    const result = "ORDER BY \"" + sort[0] as string + "\" " + sort[1] as string;
+  function getSortInfo(sortInfo : [String, String | undefined]) : string {
+    const result = "ORDER BY \"" + sortInfo[0] as string + "\" " + sortInfo[1] as string;
     return result;
   }
 
-  const fetchCustsBtw = async (skip : number, take  : number) => {
-    try {
-      const response = await fetch(url + "/btw/" + take + "," + skip);
-      if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-      const data: Customer[] = await response.json();
-      setCusts(data)
-    } catch (err){
-      setError((err as Error).message);
-    }
-  }
+  //function to get the new total after the query
   const fetchNewTotalWithOptions = async(options: string) => {
      try {
-      const response = await fetch(url + "/sql/" + options);
+      const response = await fetch(url + "/custData/total/" + options);
       if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
-      const data: Customer[] = await response.json();
-      setTotal(data.length);
+      const newTotal = await response.json()
+      setTotal(newTotal);
     } catch (err){
       setError((err as Error).message);
     }
   }
+
+  //function to run the SQL query with the parameters to mimic the paging and additional features.
   const fetchCustsWithSQL = async(options : string) => {
     try {
-      const response = await fetch(url + "/sql/" + options);
+      const response = await fetch(url + "/sql/custData/" + options);
       if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
@@ -189,13 +189,12 @@ const ttcustDataGrid : React.FC = () => {
     }
   }
 
+  //function that handles when the data is to be resorted.
   const sortChange = (event: GridSortChangeEvent) => {
     console.log(event);
-    //console.log(({...event.sort})[0].field)
     const evsort = ({...event.sort})
-    //console.log({...event.sort}[0] == undefined)
     var queryOptions = "";
-    queryOptions += getFilterInfo();
+    queryOptions += getFilterInfo(filter);
     if (evsort[0] != undefined){
       setSort(
         [evsort[0].field, evsort[0].dir]
@@ -207,16 +206,15 @@ const ttcustDataGrid : React.FC = () => {
       )
       queryOptions += " ORDER BY Customer asc";
     }
-    fetchNewTotalWithOptions(queryOptions);
-    queryOptions += " " + getPageInfo();
-    //console.log(queryOptions);
+    //fetchNewTotalWithOptions(queryOptions);
+    queryOptions += " " + getPageInfo(page);
     fetchCustsWithSQL(queryOptions);
   }
+  //funciton to handle when things have been added to ONE filter.
   const filterChange = (event: GridFilterChangeEvent) => {
     console.log(event);
     const evfilt = ({...event.filter})
     var queryOptions = ""
-    //console.log(evfilt.filters[0] as filter)
     if (evfilt.filters != undefined){
       setFilter(
         evfilt.filters[0] as filter
@@ -249,13 +247,15 @@ const ttcustDataGrid : React.FC = () => {
       setFilter(
         undefined
       );
+      queryOptions+= "WHERE 1=1"
     }
-    fetchNewTotalWithOptions(queryOptions + ' ' + getSortInfo())
-    queryOptions += ' ' + getSortInfo() + ' ' + getPageInfo()
+    fetchNewTotalWithOptions(queryOptions)
+    queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
     fetchCustsWithSQL(queryOptions);
   }
+  //function to handle page changes
   const pageChange = (event: GridPageChangeEvent) => {
-        fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
+        //fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
         const targetEvent = event.targetEvent as PagerTargetEvent;
         //const take = targetEvent.value === 'All' ? custs.length : event.page.take;
         var take = event.page.take;
@@ -272,16 +272,11 @@ const ttcustDataGrid : React.FC = () => {
         });
         const newSkip = {...event.page}.skip
         const newPage = {...event.page}.take
-        //console.log(page.skip)
-        //fetchCustsBtw(newSkip, newPage);
-        
         var queryOptions = "";
         if (targetEvent.value === 'All'){
-          //setNumButtons(1);
-          queryOptions += getFilterInfo() + " " + getSortInfo();
+          queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort);
         } else {
-          //setNumButtons(5);
-          queryOptions += getFilterInfo() + " " + getSortInfo() + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+          queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort) + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
         }
         fetchCustsWithSQL(queryOptions);
     };
@@ -290,7 +285,7 @@ const ttcustDataGrid : React.FC = () => {
   
 
   
-
+  //getting initial info
   useEffect(() => {
     const fetchCols = async () => {
       try {
@@ -378,7 +373,6 @@ const ttcustDataGrid : React.FC = () => {
         element.width = event.newWidth;
       }
     })
-    //console.log(newCols);
     const updateColumns = async () => {
       const responseUpdate = await fetch("http://localhost:8080/coloo", {
         method: "PUT",
@@ -395,9 +389,6 @@ const ttcustDataGrid : React.FC = () => {
 
   const handleColumnReorder = (event: { columns: any; }) => {
     const reorderedColumns = event.columns;
-    //console.log("COlUMNS CHANGED ORDER")
-    //const test = reorderedColumns as column[]
-    //console.log(test[0].width)
     const updateColumns = async () => {
       const responseUpdate = await fetch("http://localhost:8080/coloo", {
         method: "PUT",
@@ -415,8 +406,6 @@ const ttcustDataGrid : React.FC = () => {
   };
   const handleColumnReorder2 = (event: { columns: any; }) => {
     const reorderedColumns = event.columns;
-    //console.log("COlUMNS CHANGED ORDER")
-    //console.log(reorderedColumns as column[])
     const updateColumns = async () => {
       const responseUpdate = await fetch("http://localhost:8080/coloo", {
         method: "PUT",
@@ -435,8 +424,6 @@ const ttcustDataGrid : React.FC = () => {
 
   const handleRowClick = (event: { dataItem: any; }) => {
     const dataItem = event.dataItem
-    // console.log(event.dataItem)
-    // console.log(dataItem.customer)
     const addDataToSecondGraph = async () => {
       try {
         const response = await fetch("http://localhost:8080/jttcust/seqData/" + dataItem.customer)
@@ -496,14 +483,21 @@ const ttcustDataGrid : React.FC = () => {
         style={{height: '700px'}}
         data={data2}
         dataItemKey='customer'
+        
         sortable={true}
+        
         autoProcessData={true}
+        
         pageable={true}
+
         filterable={true}
+
         defaultSkip={0}
         defaultTake={15}
+
         reorderable={true}
         resizable={true}
+
         onColumnReorder={handleColumnReorder2}
         onColumnResize={onColumnResize2}
       >
