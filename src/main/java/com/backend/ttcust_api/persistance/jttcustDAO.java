@@ -171,7 +171,20 @@ public class jttcustDAO {
 
     public ttcust[] getTtcustsWithSQLOptions(String options){
         try {
-            String query = "SELECT Customer, NAME, \"bill-to-city\", \"bill-to-state\" FROM pub.cus " + options ;
+            String reformattedOptions = "";
+            for (int i = 0; i < options.length(); i++){
+                
+                String sub = options.substring(i, i+1);
+                //System.out.println("sub: " + sub);
+                if (sub.equals("*")){
+                    reformattedOptions += "%";
+                } else {
+                    reformattedOptions += sub;
+                }
+
+            }
+            String query = "SELECT Customer, NAME, \"bill-to-city\", \"bill-to-state\" FROM pub.cus " + reformattedOptions ;
+            System.out.println("QUERY: " + query);
             Statement statement = con.createStatement();
             // execute the query and get the result set
             ResultSet resultSet = statement.executeQuery(query);

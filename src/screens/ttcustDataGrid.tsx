@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import {Grid, GridColumn, GridPageChangeEvent, GridSortChangeEvent} from '@progress/kendo-react-grid';
+import {Grid, GridColumn, GridFilterChangeEvent, GridPageChangeEvent, GridSortChangeEvent} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@progress/kendo-react-buttons';
-import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
+import { Filter, PagerTargetEvent } from '@progress/kendo-react-data-tools';
 import { process } from '@progress/kendo-data-query';
 
 //import './App.css'
@@ -34,6 +34,11 @@ interface PageState {
   skip: number;
   take: number;
 }
+interface filter {
+  field: string;
+  operator: string;
+  value: string;
+}
 const initialDataState: PageState = { skip: 0, take: 15 };
 const initialColumns = [
   { field: "customer", title: "Customer ID", orderIndex: 0, width: '150px'},
@@ -47,6 +52,7 @@ const initialData2Columns = [
   { field: "seqPre", title: "SEQ-PRE", orderIndex: 1, width: '150px'},
   { field: "seqNum", title: "SEQ-NUM", orderIndex: 2, width: "150px"},
 ]
+const initialFilter = {field: "Customer", operator: "contains", value: ""}
 
 
 const ttcustDataGrid : React.FC = () => {
@@ -59,6 +65,8 @@ const ttcustDataGrid : React.FC = () => {
   const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
 
   const [sort, setSort] = useState<[string, string | undefined]>(["customer", "asc"]);
+  
+  const [filter, setFilter] = useState<filter | undefined>(undefined);
 
   const [data2, setData2] = useState<SEQ_Data[]>([]);
   const [cols, setCols] = useState<column[]>(initialColumns);
@@ -67,18 +75,21 @@ const ttcustDataGrid : React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTotal = async() => {
-    try {
-      const result = await fetch(url + "/total")
-      if (!result.ok){
-        throw new Error(`Error: ${result.statusText}`);
+  useEffect(() => {
+    const fetchTotal = async() => {
+      try {
+        const result = await fetch(url + "/total")
+        if (!result.ok){
+          throw new Error(`Error: ${result.statusText}`);
+        }
+        setTotal(await result.json());
+      } catch (err) {
+        setError((err as Error).message);
       }
-      setTotal(await result.json());
-    } catch (err) {
-      setError((err as Error).message);
     }
-  }
-  fetchTotal();
+    fetchTotal();
+  }, []);
+  
 
   useEffect(() => {
     const fetchCusts = async () => {
@@ -101,6 +112,35 @@ const ttcustDataGrid : React.FC = () => {
     fetchCusts();
   }, []);
 
+  function getFilterInfo() : string {
+    var queryOptions = ""
+    if (filter != undefined) {
+      switch(filter.operator){
+          case('contains'):
+            queryOptions += "WHERE \"" + filter.field + "\" LIKE \'*" + filter.value +"*\'"
+            break;
+          case("doesnotcontain"):
+            queryOptions += "WHERE \"" + filter.field + "\" NOT LIKE \'*" + filter.value +"*\'"
+            break;
+          case('eq'):
+            queryOptions += "WHERE \"" + filter.field + "\" = \'" + filter.value +"\'"
+            break;
+          case('neq'):
+            queryOptions += "WHERE \"" + filter.field + "\" != \'" + filter.value +"\'"
+            break;
+          case('startswith'):
+            queryOptions += "WHERE \"" + filter.field + "\" LIKE \'" + filter.value +"*\'"
+            break;
+          case('endswith'):
+            queryOptions += "WHERE \"" + filter.field + "\" LIKE \'*" + filter.value +"\'"
+            break;
+          case('isnull'):
+            queryOptions += "WHERE \"" + filter.field + "\" = \'\'"
+            break;
+      }
+    } 
+    return queryOptions;
+  }
   function getPageInfo() : string {
     const result = "OFFSET " + page.skip as string + " ROWS FETCH NEXT " + page.take as string + " ROWS ONLY ";
     return result;
@@ -123,11 +163,21 @@ const ttcustDataGrid : React.FC = () => {
       setError((err as Error).message);
     }
   }
-  
+  const fetchNewTotalWithOptions = async(options: string) => {
+     try {
+      const response = await fetch(url + "/sql/" + options);
+      if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+      const data: Customer[] = await response.json();
+      console.log(data.length);
+      setTotal(data.length);
+    } catch (err){
+      setError((err as Error).message);
+    }
+  }
   const fetchCustsWithSQL = async(options : string) => {
     try {
-      console.log("OPTIONS:")
-      console.log(options)
       const response = await fetch(url + "/sql/" + options);
       if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
@@ -145,19 +195,63 @@ const ttcustDataGrid : React.FC = () => {
     const evsort = ({...event.sort})
     //console.log({...event.sort}[0] == undefined)
     var queryOptions = "";
+    queryOptions += getFilterInfo();
     if (evsort[0] != undefined){
       setSort(
         [evsort[0].field, evsort[0].dir]
       );
-      queryOptions += "ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
+      queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
     } else {
       setSort(
         ["Customer", "asc"]
       )
-      queryOptions += "ORDER BY Customer asc";
+      queryOptions += " ORDER BY Customer asc";
     }
+    fetchNewTotalWithOptions(queryOptions);
     queryOptions += " " + getPageInfo();
     //console.log(queryOptions);
+    fetchCustsWithSQL(queryOptions);
+  }
+  const filterChange = (event: GridFilterChangeEvent) => {
+    console.log(event);
+    const evfilt = ({...event.filter})
+    var queryOptions = ""
+    //console.log(evfilt.filters[0] as filter)
+    if (evfilt.filters != undefined){
+      setFilter(
+        evfilt.filters[0] as filter
+      );
+      const filt = evfilt.filters[0] as filter;
+      switch(filt.operator){
+        case('contains'):
+          queryOptions += "WHERE \"" + filt.field + "\" LIKE \'*" + filt.value +"*\'"
+          break;
+        case("doesnotcontain"):
+          queryOptions += "WHERE \"" + filt.field + "\" NOT LIKE \'*" + filt.value +"*\'"
+          break;
+        case('eq'):
+          queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
+          break;
+        case('neq'):
+          queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
+          break;
+        case('startswith'):
+          queryOptions += "WHERE \"" + filt.field + "\" LIKE \'" + filt.value +"*\'"
+          break;
+        case('endswith'):
+          queryOptions += "WHERE \"" + filt.field + "\" LIKE \'*" + filt.value +"\'"
+          break;
+        case('isnull'):
+          queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
+          break;
+      }
+    } else {
+      setFilter(
+        undefined
+      );
+    }
+    fetchNewTotalWithOptions(queryOptions + ' ' + getSortInfo())
+    queryOptions += ' ' + getSortInfo() + ' ' + getPageInfo()
     fetchCustsWithSQL(queryOptions);
   }
   const pageChange = (event: GridPageChangeEvent) => {
@@ -175,7 +269,8 @@ const ttcustDataGrid : React.FC = () => {
         const newPage = {...event.page}.take
         //console.log(page.skip)
         //fetchCustsBtw(newSkip, newPage);
-        var queryOptions = getSortInfo() + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+        fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
+        var queryOptions = getFilterInfo() + " " + getSortInfo() + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
         fetchCustsWithSQL(queryOptions);
     };
 
@@ -363,8 +458,8 @@ const ttcustDataGrid : React.FC = () => {
         sortable={true}
         onSortChange={sortChange}
 
-        autoProcessData={false}
-        filterable={false}
+        filterable={true}
+        onFilterChange={filterChange}
 
         skip={page.skip}
         take={page.take}
