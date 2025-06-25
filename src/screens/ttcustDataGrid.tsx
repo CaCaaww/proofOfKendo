@@ -60,6 +60,7 @@ const ttcustDataGrid : React.FC = () => {
   const userId = id as string;
   const navigate = useNavigate()
   const [total, setTotal] = useState<number> (0);
+  const [numButtons, setNumButtons] = useState<number> (5);
 
   const [page, setPage] = useState<PageState>(initialDataState);
   const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
@@ -170,7 +171,6 @@ const ttcustDataGrid : React.FC = () => {
           throw new Error(`Error: ${response.statusText}`);
         }
       const data: Customer[] = await response.json();
-      console.log(data.length);
       setTotal(data.length);
     } catch (err){
       setError((err as Error).message);
@@ -255,8 +255,13 @@ const ttcustDataGrid : React.FC = () => {
     fetchCustsWithSQL(queryOptions);
   }
   const pageChange = (event: GridPageChangeEvent) => {
+        fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
         const targetEvent = event.targetEvent as PagerTargetEvent;
-        const take = targetEvent.value === 'All' ? custs.length : event.page.take;
+        //const take = targetEvent.value === 'All' ? custs.length : event.page.take;
+        var take = event.page.take;
+        if (targetEvent.value === 'All'){
+          take = total;
+        }
         console.log(event)
         if (targetEvent.value) {
             setPageSizeValue(targetEvent.value);
@@ -269,8 +274,15 @@ const ttcustDataGrid : React.FC = () => {
         const newPage = {...event.page}.take
         //console.log(page.skip)
         //fetchCustsBtw(newSkip, newPage);
-        fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
-        var queryOptions = getFilterInfo() + " " + getSortInfo() + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+        
+        var queryOptions = "";
+        if (targetEvent.value === 'All'){
+          //setNumButtons(1);
+          queryOptions += getFilterInfo() + " " + getSortInfo();
+        } else {
+          //setNumButtons(5);
+          queryOptions += getFilterInfo() + " " + getSortInfo() + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+        }
         fetchCustsWithSQL(queryOptions);
     };
 
@@ -340,16 +352,12 @@ const ttcustDataGrid : React.FC = () => {
   }, []);
 
   const onColumnResize = (event: any) => {
-    // console.log(` new width: ${event.newWidth}`);
-    // console.log(event.index);
-    // console.log(cols)
     const newCols = cols;
     newCols.forEach( (element) => {
       if (element.orderIndex == event.index){
         element.width = event.newWidth;
       }
     })
-    //console.log(newCols);
     const updateColumns = async () => {
       const responseUpdate = await fetch("http://localhost:8080/coloo", {
         method: "PUT",
@@ -359,7 +367,6 @@ const ttcustDataGrid : React.FC = () => {
         body: JSON.stringify({"userId": userId, "columnId": "custData", "dataColumns": newCols as column[]})
       });
       setCols(newCols);
-      //console.log(responseUpdate);
     }
     updateColumns();
   };
@@ -469,7 +476,7 @@ const ttcustDataGrid : React.FC = () => {
         resizable={true}
 
         pageable={{
-          buttonCount: 4,
+          buttonCount: numButtons,
           pageSizes: [5, 10, 15, 'All'],
           pageSizeValue: pageSizeValue
         }}
