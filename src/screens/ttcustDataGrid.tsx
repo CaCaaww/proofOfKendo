@@ -245,6 +245,27 @@ const ttcustDataGrid : React.FC = () => {
     queryOptions += " " + getPageInfo(page);
     fetchCustsWithSQL(queryOptions);
   }
+
+  const sortChange2 = (event: GridSortChangeEvent) => {
+    console.log(event);
+    const evsort = ({...event.sort})
+    var queryOptions = "";
+    queryOptions += getFilterInfo(filter);
+    if (evsort[0] != undefined){
+      setSort2(
+        [evsort[0].field, evsort[0].dir]
+      );
+      queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
+    } else {
+      setSort2(
+        ["Customer", "asc"]
+      )
+      queryOptions += " ORDER BY Customer asc";
+    }
+    //fetchNewTotalWithOptions(queryOptions);
+    queryOptions += " " + getPageInfo(page);
+    fetchSeqWithSQL(queryOptions);
+  }
   //funciton to handle when things have been added to ONE filter.
   const filterChange = (event: GridFilterChangeEvent) => {
     console.log(event);
@@ -606,7 +627,8 @@ const ttcustDataGrid : React.FC = () => {
         data={data2}
       
         
-        sortable={false}
+        sortable={true}
+        onSortChange={sortChange2}
         
         pageable={{
           buttonCount: numButtons2,
