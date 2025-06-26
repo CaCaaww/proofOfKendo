@@ -250,7 +250,13 @@ const ttcustDataGrid : React.FC = () => {
     console.log(event);
     const evsort = ({...event.sort})
     var queryOptions = "";
-    queryOptions += getFilterInfo(filter);
+    var filterInfo = getFilterInfo(filter2);
+        var queryOptions = "";
+        if (filterInfo === "") {
+          queryOptions += "WHERE \"Customer\" = \'" + clickedCustomer + "\' "  
+        } else {
+          queryOptions += filterInfo + " AND \"Customer\" = \'" + clickedCustomer + "\' "
+        }
     if (evsort[0] != undefined){
       setSort2(
         [evsort[0].field, evsort[0].dir]
@@ -263,7 +269,7 @@ const ttcustDataGrid : React.FC = () => {
       queryOptions += " ORDER BY Customer asc";
     }
     //fetchNewTotalWithOptions(queryOptions);
-    queryOptions += " " + getPageInfo(page);
+    queryOptions += " " + getPageInfo(page2);
     fetchSeqWithSQL(queryOptions);
   }
   //funciton to handle when things have been added to ONE filter.
