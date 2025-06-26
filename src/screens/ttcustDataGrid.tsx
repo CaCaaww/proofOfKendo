@@ -15,8 +15,8 @@ const colooUrl = 'http://localhost:8080/coloo'
 
 interface SEQ_Data{
   custID: string;
-  seqPre: string;
-  seqNum: number;
+  seqPre?: string;
+  seqNum?: number;
 }
 interface Customer {
   custID: string;
@@ -48,9 +48,9 @@ const initialColumns = [
   ];
 
 const initialData2Columns = [
-  { field: "custId", title: "Customer ID", orderIndex: 0, width: '150px'},
-  { field: "seqPre", title: "SEQ-PRE", orderIndex: 1, width: '150px'},
-  { field: "seqNum", title: "SEQ-NUM", orderIndex: 2, width: "150px"},
+  { field: "customer", title: "Customer ID", orderIndex: 0, width: '150px'},
+  { field: "Seq-pre", title: "SEQ-PRE", orderIndex: 1, width: '150px'},
+  { field: "Seq-num", title: "SEQ-NUM", orderIndex: 2, width: "150px"},
 ]
 const initialFilter = {field: "Customer", operator: "contains", value: ""}
 
@@ -126,12 +126,18 @@ const ttcustDataGrid : React.FC = () => {
   function getFilterInfo(filterInfo : filter | undefined) : string {
     var queryOptions = ""
     if (filterInfo != undefined) {
+      var filterField = filterInfo.field
+      if (filterField == 'Seq-num'){
+        filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+      } else {
+        filterField = "\"" + filterField + "\"";
+      }
       switch(filterInfo.operator){
           case('contains'):
-            queryOptions += "WHERE \"" + filterInfo.field + "\" LIKE \'*" + filterInfo.value +"*\'"
+            queryOptions += "WHERE " + filterField + " LIKE \'*" + filterInfo.value +"*\'"
             break;
           case("doesnotcontain"):
-            queryOptions += "WHERE \"" + filterInfo.field + "\" NOT LIKE \'*" + filterInfo.value +"*\'"
+            queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filterInfo.value +"*\'"
             break;
           case('eq'):
             queryOptions += "WHERE \"" + filterInfo.field + "\" = \'" + filterInfo.value +"\'"
@@ -140,10 +146,10 @@ const ttcustDataGrid : React.FC = () => {
             queryOptions += "WHERE \"" + filterInfo.field + "\" != \'" + filterInfo.value +"\'"
             break;
           case('startswith'):
-            queryOptions += "WHERE \"" + filterInfo.field + "\" LIKE \'" + filterInfo.value +"*\'"
+            queryOptions += "WHERE " + filterField + " LIKE \'" + filterInfo.value +"*\'"
             break;
           case('endswith'):
-            queryOptions += "WHERE \"" + filterInfo.field + "\" LIKE \'*" + filterInfo.value +"\'"
+            queryOptions += "WHERE " + filterField + " LIKE \'*" + filterInfo.value +"\'"
             break;
           case('isnull'):
             queryOptions += "WHERE \"" + filterInfo.field + "\" = \'\'"
@@ -205,13 +211,13 @@ const ttcustDataGrid : React.FC = () => {
 
   const fetchSeqWithSQL = async(options : string) => {
     try {
-      console.log("HERE")
+      //console.log("HERE")
       const response = await fetch(url + "/sql/seqData/" + options);
       if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
       const newData2: SEQ_Data[] = await response.json();
-      console.log(newData2);
+      //console.log(newData2);
       setData2(newData2)
     } catch (err){
       setError((err as Error).message);
@@ -282,6 +288,57 @@ const ttcustDataGrid : React.FC = () => {
     queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
     fetchCustsWithSQL(queryOptions);
   }
+
+  const filterChange2 = (event: GridFilterChangeEvent) => {
+    console.log(event);
+    const evfilt = ({...event.filter})
+    var queryOptions = ""
+    if (evfilt.filters != undefined){
+      setFilter2(
+        evfilt.filters[0] as filter
+      );
+      const filt = evfilt.filters[0] as filter;
+      var filterField = filt.field
+      if (filterField == 'Seq-num'){
+        filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+      } else {
+        filterField = "\"" + filterField + "\"";
+      }
+      switch(filt.operator){
+        case('contains'):
+          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"*\'"
+          break;
+        case("doesnotcontain"):
+          queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filt.value +"*\'"
+          break;
+        case('eq'):
+          queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
+          break;
+        case('neq'):
+          queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
+          break;
+        case('startswith'):
+          queryOptions += "WHERE " + filterField + " LIKE \'" + filt.value +"*\'"
+          break;
+        case('endswith'):
+          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"\'"
+          break;
+        case('isnull'):
+          queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
+          break;
+      }
+    } else {
+      setFilter2(
+        undefined
+      );
+      queryOptions+= "WHERE 1=1"
+    }
+    queryOptions += " AND \"Customer\" = \'" + clickedCustomer + "\'";
+    fetchNewSeqTotalWithOptions(queryOptions)
+    queryOptions += ' ' + getSortInfo(sort2) + ' ' + getPageInfo(page2)
+    fetchSeqWithSQL(queryOptions);
+  }
+
   //function to handle page changes
   const pageChange = (event: GridPageChangeEvent) => {
         //fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
@@ -547,7 +604,7 @@ const ttcustDataGrid : React.FC = () => {
       <Grid
         style={{height: '700px'}}
         data={data2}
-        dataItemKey='customer'
+      
         
         sortable={false}
         
@@ -558,7 +615,8 @@ const ttcustDataGrid : React.FC = () => {
         }}
         onPageChange={pageChange2}
 
-        filterable={false}
+        filterable={true}
+        onFilterChange={filterChange2}
 
         skip={page2.skip}
         take={page2.take}
