@@ -17,8 +17,8 @@ const loginUrl = "http://localhost:8080/jttcust/login"
 
 export function Login() {
     const navigate = useNavigate();
-    const goToDataPage = (userID : string) => {
-        navigate('/data/' + userID  
+    const goToHomePage = (userID : string) => {
+        navigate('/home/' + userID  
         ); 
     };
     const handleSubmit = async (dataItem: { [Username: string]: any }) => {
@@ -34,7 +34,7 @@ export function Login() {
             //route to login
             //console.log(await response.text())
             const data : string = await response.text()
-            goToDataPage(data);
+            goToHomePage(data);
         }
     }
     return(

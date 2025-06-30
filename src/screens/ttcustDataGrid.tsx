@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@progress/kendo-react-buttons';
 import { Filter, PagerTargetEvent } from '@progress/kendo-react-data-tools';
 import { process } from '@progress/kendo-data-query';
+import DrawerContainer from './drawerContainer';
 
 //import './App.css'
 
@@ -591,6 +592,7 @@ const ttcustDataGrid : React.FC = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
   return (
+    <DrawerContainer>
     <div>
       <h1>Customers</h1>
       <Grid
@@ -660,8 +662,8 @@ const ttcustDataGrid : React.FC = () => {
           <GridColumn key={col.field} field={col.field} title={col.title} orderIndex={col.orderIndex} width={col.width}></GridColumn>
         ))}
       </Grid>
-      <Button onClick = {() => navigate("/")}> Logout </Button>
     </div>
+    </DrawerContainer>
   );
   
 };
