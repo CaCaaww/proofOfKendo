@@ -1,7 +1,3 @@
-import { AppBar, AppBarSection, AppBarSpacer, Avatar, Menu, MenuItem, PanelBar, PanelBarItem } from '@progress/kendo-react-layout';
-import { Switch, SwitchChangeEvent } from '@progress/kendo-react-inputs';
-import { Label } from '@progress/kendo-react-labels';
-import { menuIcon } from '@progress/kendo-svg-icons';
 import { Button } from '@progress/kendo-react-buttons';
 import { useNavigate, useParams } from 'react-router-dom';
 import "@progress/kendo-theme-default/dist/all.css";

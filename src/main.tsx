@@ -6,7 +6,7 @@ import './index.css'
 import App from './screens/ttcustDataGrid.tsx'
 import {Login} from './screens/login.tsx'
 import Home from './screens/home.tsx'
-import DrawerContainer from './screens/drawerContainer.tsx';
+import IauDataGrid from './screens/iauDataGrid.tsx';
 
 createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
@@ -14,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<Login />} />
           <Route path="/data/:id" element={<App />} />
           <Route path="/home/:id" element={<Home />} />
+          <Route path="/iauData/:id" element={<IauDataGrid/> } />
         </Routes>
     </BrowserRouter>
 )

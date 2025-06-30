@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.backend.ttcust_api.model.iauData;
 import com.backend.ttcust_api.model.seqData;
 import com.backend.ttcust_api.model.ttcust;
 import com.backend.ttcust_api.persistance.jttcustDAO;
@@ -76,19 +77,7 @@ public class jttcustController {
         }
     }
 
-    //get ttcusts with indexes between num. Used for paging
-    //INPUT FORMAT: <Limit>,<Offset>
-    @GetMapping("/btw/{numsBetween}")
-    public ResponseEntity<ttcust[]> getTtcustsBetweenIndexes(@PathVariable String numsBetween){
-        LOG.info("GET /jttcust/btw/" + numsBetween);
-        try {
-            ttcust[] result = jttcustDAO.getCustsBetweenIndex(numsBetween);
-            return new ResponseEntity<ttcust[]>(result, HttpStatus.OK);
-        } catch (Exception e){
-            LOG.log(Level.SEVERE, e.getLocalizedMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    
     //takes sql query option to run on the ttcust data. Used for sorting and filtering.
     //Return is a ResponseEntity that is a list of one of the dataTypes.
     @GetMapping("/sql/{columnId}/{queryOptions}")
@@ -101,6 +90,9 @@ public class jttcustController {
             } else if (columnId.equals("seqData")){
                 seqData[] result = jttcustDAO.getSeqWithSQLOptions(queryOptions);
                 return new ResponseEntity<seqData[]>(result, HttpStatus.OK);
+            } else if (columnId.equals("iauData")){
+                iauData[] result = jttcustDAO.getIauWithSQLOptions(queryOptions);
+                return new ResponseEntity<iauData[]>(result, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
@@ -118,6 +110,9 @@ public class jttcustController {
                 return new ResponseEntity<String>(result, HttpStatus.OK);
             } else if (columnId.equals("seqData")){
                 String result = jttcustDAO.getNumSeqWithOptions(queryOptions) + "";
+                return new ResponseEntity<String>(result, HttpStatus.OK);
+            } else if (columnId.equals("iauData")){
+                String result = jttcustDAO.getNumIauWithOptions(queryOptions) + "";
                 return new ResponseEntity<String>(result, HttpStatus.OK);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

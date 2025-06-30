@@ -1,5 +1,5 @@
 
-import { useState, useEffect} from 'react';
+import { useState} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Drawer, DrawerContent, DrawerSelectEvent } from '@progress/kendo-react-layout';
 import { Button } from '@progress/kendo-react-buttons';
@@ -12,10 +12,11 @@ const DrawerContainer = (props: { children: unknown; }) => {
     const { id } = useParams()
 
     const items = [
-    { text: 'Home', selected: false, route: '/home/' + id },
-    { text: 'Customer Data', selected: false, route: '/data/' + id },
+    { text: 'Home', route: '/home/' + id },
+    { text: 'Customer Data', route: '/data/' + id },
+    { text: 'IAU Data', route: '/iauData/' + id},
     { separator: true },
-    { text: 'Logout', selected: false, route: '/' },
+    { text: 'Logout', route: '/' },
     ];
     const navigate = useNavigate();
     const [expanded, setExpanded] = useState<boolean>(true);
@@ -43,7 +44,7 @@ const DrawerContainer = (props: { children: unknown; }) => {
                 expanded={expanded}
                 position={'start'}
                 mode={'push'}
-                width={120}
+                width={150}
                 items={items.map((item, index) => ({
                     ...item,
                     selected: index === selected

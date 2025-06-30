@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react'
 import {Grid, GridColumn, GridFilterChangeEvent, GridPageChangeEvent, GridSortChangeEvent} from '@progress/kendo-react-grid';
 import "@progress/kendo-theme-default/dist/all.css";
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@progress/kendo-react-buttons';
-import { Filter, PagerTargetEvent } from '@progress/kendo-react-data-tools';
-import { process } from '@progress/kendo-data-query';
+import { useParams } from 'react-router-dom';
+import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
 import DrawerContainer from './drawerContainer';
 
 //import './App.css'
@@ -53,13 +51,11 @@ const initialData2Columns = [
   { field: "Seq-pre", title: "SEQ-PRE", orderIndex: 1, width: '150px'},
   { field: "Seq-num", title: "SEQ-NUM", orderIndex: 2, width: "150px"},
 ]
-const initialFilter = {field: "Customer", operator: "contains", value: ""}
 
 
 const ttcustDataGrid : React.FC = () => {
   const { id } = useParams()
   const userId = id as string;
-  const navigate = useNavigate()
   const [total, setTotal] = useState<number> (0);
   const [numButtons, setNumButtons] = useState<number> (5);
 
@@ -589,7 +585,11 @@ const ttcustDataGrid : React.FC = () => {
     // addDataToSecondGraph();
   }
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (
+    <DrawerContainer>
+      <p>Loading...</p>
+    </DrawerContainer>
+  );
   if (error) return <p>Error: {error}</p>;
   return (
     <DrawerContainer>

@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import com.backend.ttcust_api.model.iauData;
 import com.backend.ttcust_api.model.seqData;
 import com.backend.ttcust_api.model.ttcust;
 
@@ -115,38 +116,7 @@ public class jttcustDAO {
         return getTtcustsByMatchingX(null, null);
     }
     
-    public ttcust[] getCustsBetweenIndex(String indexes){
-        try {
-            int divider = indexes.indexOf(",");
-            if (divider == -1){
-                System.out.println("BAD INPUT");
-                return null;
-            }
-            String limit = indexes.substring(0, divider);
-            String offset = indexes.substring(divider + 1);
-            String query = "SELECT Customer, NAME, \"bill-to-city\", \"bill-to-state\" FROM pub.cus OFFSET " + offset + "ROWS FETCH NEXT " + limit + "ROWS ONLY" ;
-            Statement statement = con.createStatement();
-            // execute the query and get the result set
-            ResultSet resultSet = statement.executeQuery(query);
-            ArrayList<ttcust> ttcustArrayList = new ArrayList<>();
-            while (resultSet.next()){
-                 String Customer = resultSet.getString("Customer");
-                String NAME = resultSet.getString("NAME");
-                String city = resultSet.getString("bill-to-city");
-                String state = resultSet.getString("bill-to-state");
-                //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
-                ttcustArrayList.add(new ttcust(Customer, NAME, city, state));
-            }
-            ttcust[] result = new ttcust[ttcustArrayList.size()];
-            ttcustArrayList.toArray(result);
-            resultSet.close();
-            statement.close();
-            return result;
-        } catch (Exception e){
-            System.out.println(e);
-        }
-        return null;
-    }
+    
 
     public int getNumCusts(){
         try {
@@ -231,6 +201,37 @@ public class jttcustDAO {
         }
         return 0;
     }
+    public int getNumIauWithOptions(String queryOptions){
+        try {
+            String reformattedOptions = "";
+            for (int i = 0; i < queryOptions.length(); i++){
+                
+                String sub = queryOptions.substring(i, i+1);
+                //System.out.println("sub: " + sub);
+                if (sub.equals("*")){
+                    reformattedOptions += "%";
+                } else {
+                    reformattedOptions += sub;
+                }
+
+            }
+            String query = "";
+            query = "SELECT count(*) FROM pub.iau " + reformattedOptions;
+            Statement statement = con.createStatement();
+            ResultSet result = statement.executeQuery(query);
+            int num = 0;
+            while (result.next()){
+                num = result.getInt("count(*)");
+            }
+            result.close();
+            statement.close();
+            return num;
+
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return 0;
+    }
 
     public seqData[] getSeqWithSQLOptions(String options){
         try {
@@ -261,6 +262,44 @@ public class jttcustDAO {
             }
             seqData[] result = new seqData[seqDataArrayList.size()];
             seqDataArrayList.toArray(result);
+            resultSet.close();
+            statement.close();
+            return result;
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    public iauData[] getIauWithSQLOptions(String options){
+        try {
+            String reformattedOptions = "";
+            for (int i = 0; i < options.length(); i++){
+                
+                String sub = options.substring(i, i+1);
+                //System.out.println("sub: " + sub);
+                if (sub.equals("*")){
+                    reformattedOptions += "%";
+                } else {
+                    reformattedOptions += sub;
+                }
+
+            }
+            String query = "SELECT \"Seq-num\", \"Item-code\", branch FROM pub.iau " + reformattedOptions ;
+            System.out.println("QUERY: " + query);
+            Statement statement = con.createStatement();
+            // execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery(query);
+            ArrayList<iauData> iauArrayList = new ArrayList<>();
+            while (resultSet.next()){
+                String seq = resultSet.getString("Seq-num");
+                String item = resultSet.getString("Item-code");
+                String branch = resultSet.getString("branch");
+                //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
+                iauArrayList.add(new iauData(seq, item, branch));
+            }
+            iauData[] result = new iauData[iauArrayList.size()];
+            iauArrayList.toArray(result);
             resultSet.close();
             statement.close();
             return result;
