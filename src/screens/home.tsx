@@ -31,7 +31,7 @@ function Home() {
     return (
         <DrawerContainer>
         <div>
-            <Button > Go to Data </Button>
+            <h1>Home Screen</h1>
         </div>
         </DrawerContainer>
     );

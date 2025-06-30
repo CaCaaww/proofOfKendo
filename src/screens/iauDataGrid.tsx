@@ -43,13 +43,14 @@ const iauDataGrid : React.FC = () => {
     const [iauData, setIauData] = useState<iauData[]>();
     const [cols, setCols] = useState<column[]>(initialColumns);
     const [loading, setLoading] = useState<boolean>(true);
+    const [loading2, setLoading2] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     const [total, setTotal] = useState<number> (0);
     const [numButtons, setNumButtons] = useState<number> (5);
     const [page, setPage] = useState<PageState>(initialDataState);
     const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
-    const [sort, setSort] = useState<[string, string | undefined]>(["Seq-num", "asc"]);
+    const [sort, setSort] = useState<[string, string | undefined]>(["Item-code", "asc"]);
     const [filter, setFilter] = useState<filter | undefined>(undefined);
     
 
@@ -113,6 +114,7 @@ const iauDataGrid : React.FC = () => {
     }
     //function to run the SQL query with the parameters to mimic the paging and additional features.
     const fetchIauWithSQL = async(options : string) => {
+        setLoading2(true);
         try {
             const response = await fetch(url + "/sql/iauData/" + options);
             if (!response.ok) {
@@ -122,6 +124,8 @@ const iauDataGrid : React.FC = () => {
             setIauData(data)
         } catch (err){
             setError((err as Error).message);
+        } finally {
+            setLoading2(false);
         }
     }
 
@@ -140,9 +144,9 @@ const iauDataGrid : React.FC = () => {
             queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
         } else {
             setSort(
-                ["Customer", "asc"]
+                ["Item-code", "asc"]
             )
-            queryOptions += " ORDER BY Customer asc";
+            queryOptions += " ORDER BY \"Item-code\" asc";
         }
             //fetchNewTotalWithOptions(queryOptions);
             queryOptions += " " + getPageInfo(page);
@@ -151,45 +155,51 @@ const iauDataGrid : React.FC = () => {
 
     const filterChange = (event: GridFilterChangeEvent) => {
         console.log(event);
-        const evfilt = ({...event.filter})
-        var queryOptions = ""
-        if (evfilt.filters != undefined){
-            setFilter(
-                evfilt.filters[0] as filter
-            );
-            const filt = evfilt.filters[0] as filter;
-            switch(filt.operator){
-                case('contains'):
-                queryOptions += "WHERE \"" + filt.field + "\" LIKE \'*" + filt.value +"*\'"
-                break;
-                case("doesnotcontain"):
-                queryOptions += "WHERE \"" + filt.field + "\" NOT LIKE \'*" + filt.value +"*\'"
-                break;
-                case('eq'):
-                queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
-                break;
-                case('neq'):
-                queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
-                break;
-                case('startswith'):
-                queryOptions += "WHERE \"" + filt.field + "\" LIKE \'" + filt.value +"*\'"
-                break;
-                case('endswith'):
-                queryOptions += "WHERE \"" + filt.field + "\" LIKE \'*" + filt.value +"\'"
-                break;
-                case('isnull'):
-                queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
-                break;
-            }
-        } else {
-            setFilter(
-                undefined
-            );
-            queryOptions+= "WHERE 1=1"
-        }
-        fetchNewTotalWithOptions(queryOptions)
-        queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
-        fetchIauWithSQL(queryOptions);
+    const evfilt = ({...event.filter})
+    var queryOptions = ""
+    if (evfilt.filters != undefined){
+      setFilter(
+        evfilt.filters[0] as filter
+      );
+      const filt = evfilt.filters[0] as filter;
+      var filterField = filt.field
+      if (filterField == 'Seq-num'){
+        filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+      } else {
+        filterField = "\"" + filterField + "\"";
+      }
+      switch(filt.operator){
+        case('contains'):
+          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"*\'"
+          break;
+        case("doesnotcontain"):
+          queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filt.value +"*\'"
+          break;
+        case('eq'):
+          queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
+          break;
+        case('neq'):
+          queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
+          break;
+        case('startswith'):
+          queryOptions += "WHERE " + filterField + " LIKE \'" + filt.value +"*\'"
+          break;
+        case('endswith'):
+          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"\'"
+          break;
+        case('isnull'):
+          queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
+          break;
+      }
+    } else {
+      setFilter(
+        undefined
+      );
+      queryOptions+= "WHERE 1=1"
+    }
+    fetchNewTotalWithOptions(queryOptions)
+    queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
+    fetchIauWithSQL(queryOptions);
     }
 
     const pageChange = (event: GridPageChangeEvent) => {
@@ -225,7 +235,7 @@ const iauDataGrid : React.FC = () => {
                 headers: {
                         'Content-Type': 'application/json',
                     },
-                body: JSON.stringify({"userId": userId, "columnId": "custData", "dataColumns": reorderedColumns as column[]})
+                body: JSON.stringify({"userId": userId, "columnId": "iauData", "dataColumns": reorderedColumns as column[]})
             });
             setCols(reorderedColumns as column[]);
             console.log(responseUpdate);
@@ -273,7 +283,7 @@ const iauDataGrid : React.FC = () => {
     useEffect(() => {
         const fetchIau = async () => {
             try {
-                fetchIauWithSQL(getPageInfo(page));
+                fetchIauWithSQL(getSortInfo(sort) + ' ' + getPageInfo(page));
             } catch (err) {
                 console.error("Error fetching data:", err)
             }
@@ -313,14 +323,19 @@ const iauDataGrid : React.FC = () => {
     }, []);
 
     if (loading) return (
-    <DrawerContainer>
-        <p>Loading...</p>
-    </DrawerContainer>);
+        <DrawerContainer>
+            <p>Loading...</p>
+        </DrawerContainer>);
+    // if (loading2) return (
+    //     <DrawerContainer>
+    //         <p>Loading...</p>
+    //     </DrawerContainer>);
     if (error) return <p>Error: {error}</p>;
     return (
     <DrawerContainer>
       <div>
         <h1>Customers</h1>
+        {loading2? <p>loading...</p>: <p></p>}
         <Grid
           style={{ height: '700px'}} 
           data={iauData} 
