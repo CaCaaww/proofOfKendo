@@ -48,46 +48,47 @@ const url = 'http://localhost:8080/jttcust'
 const colooUrl = 'http://localhost:8080/coloo'
 
 const iauDataGrid : React.FC = () => {
+    // these two are the userId parameters, gotten from the login and carried through the route URL's
     const { id } = useParams()
     const userId = id as string;
 
-    const [iauData, setIauData] = useState<iauData[]>();
-    const [cols, setCols] = useState<column[]>(initialColumns);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [loading2, setLoading2] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [iauData, setIauData] = useState<iauData[]>(); //The data displayed on the grid
+    const [cols, setCols] = useState<column[]>(initialColumns); // data that stores the order and size of the columns (along with their name and field)
+    const [loading, setLoading] = useState<boolean>(true); //Stores true on data initially loading, false otherwise
+    const [loading2, setLoading2] = useState<boolean>(false); //store true on data loading from a change in the data state, false otherwise
+    const [error, setError] = useState<string | null>(null); //stores an error if one occurs, null otherwise
 
-    const [total, setTotal] = useState<number> (0);
-    const [numButtons, setNumButtons] = useState<number> (5);
-    const [page, setPage] = useState<PageState>(initialDataState);
-    const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
-    const [sort, setSort] = useState<[string, string | undefined]>(["Item-code", "asc"]);
-    const [filter, setFilter] = useState<filter | undefined>(undefined);
+    const [total, setTotal] = useState<number> (0); //total number of rows of data, stored so the grid knows how many pages it needs to make
+    const [numButtons, setNumButtons] = useState<number> (5); //number of page buttons on the bottom scrollbar
+    const [page, setPage] = useState<PageState>(initialDataState); //stores a PageState, which stores the skip and take of a page.
+    const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>(); //stores how many rows per page.
+    const [sort, setSort] = useState<[string, string | undefined]>(["Item-code", "asc"]); //stores the parameters for sorting the data (what column to sort by and asc or desc)
+    const [filter, setFilter] = useState<filter | undefined>(undefined); //stores the filter paramets (column to filter by, how much of the string needs to match, and the value to match it against)
 
-    const initialDates = {startDate: '01-01-2024', endDate: '01-01-3000'}
-    const [betDates, setBetDates] = useState<betDateInfo>(initialDates as betDateInfo);
+    const initialDates = {startDate: '01-01-2024', endDate: '01-01-3000'} //the initial dates that the data is bounded by
+    const [betDates, setBetDates] = useState<betDateInfo>(initialDates as betDateInfo); //storing the dates that the data is bounded by
 
-    const dateRegex: RegExp = new RegExp(/^\d\d\-\d\d\-\d\d\d\d$/);
-    const dateValidator = (value: string) => (dateRegex.test(value) ? '' : 'Please enter a valid date.');
-    const dateInput = (fieldRenderProps: FieldRenderProps) => {
-    const { validationMessage, visited, ...others } = fieldRenderProps;
-    return (
-        <div>
-            <Input {...others} />
-            {visited && validationMessage && <Error2>{validationMessage}</Error2>}
-        </div>
-    );
-};
+    const dateRegex: RegExp = new RegExp(/^\d\d\-\d\d\-\d\d\d\d$/); //Regex to check if an inputed date is in the correct format
+    const dateValidator = (value: string) => (dateRegex.test(value) ? '' : 'Please enter a valid date.'); //"function" to check if an inputed date is valid
     
+    //object that defines the input field for the form
+    const dateInput = (fieldRenderProps: FieldRenderProps) => {
+        const { validationMessage, visited, ...others } = fieldRenderProps;
+        return (
+            <div>
+                <Input {...others} />
+                {visited && validationMessage && <Error2>{validationMessage}</Error2>}
+            </div>
+        );
+    };
+    
+    //function to return the query section that will limit the data to between dates specified by the user through the form.
     function getBetweenDateInfo(dateInfo: betDateInfo) : string {
-        //var queryOptions = "\"Date-activity\" in" 
-        //queryOptions += " (SELECT \"Date-activity\" FROM pub.iau WHERE \"Date-activity\" >= TO_DATE(\'" + dateInfo.startDate + "\')" 
-        //queryOptions += " AND \"Date-activity\" <= TO_DATE(\'" + dateInfo.endDate + "\'))"
         var queryOptions = "\"Date-activity\" BETWEEN TO_DATE(\'" + dateInfo.startDate + "\') AND TO_DATE(\'" + dateInfo.endDate + "\')" 
-        //var queryOptions = "\"Date-activity\" >= TO_DATE(\'01-01-2023\')"
         return queryOptions;
     }
 
+    //function to return the query section that filter the data
     function getFilterInfo(filterInfo : filter | undefined) : string {
         var queryOptions = ""
         if (filterInfo != undefined) {
@@ -128,16 +129,20 @@ const iauDataGrid : React.FC = () => {
         }
         return queryOptions;
     }
+
+    //function to return the section of the SQL query that ensures that only the section of the data needed for the current page is returned.
     function getPageInfo(pageInfo : PageState) : string {
         const result = "OFFSET " + pageInfo.skip as string + " ROWS FETCH NEXT " + pageInfo.take as string + " ROWS ONLY ";
         return result;
     }
 
+    //function to return the section of the SQL query that will order the data
     function getSortInfo(sortInfo : [String, String | undefined]) : string {
         const result = "ORDER BY \"" + sortInfo[0] as string + "\" " + sortInfo[1] as string;
         return result;
     }
 
+    //function to fetch the total number of rows after the data has been filtered and sorted (but not paged)
     const fetchNewTotalWithOptions = async(options: string) => {
         try {
             const response = await fetch(url + "/iauData/total/" + options);
@@ -150,11 +155,12 @@ const iauDataGrid : React.FC = () => {
             setError((err as Error).message);
         }
     }
-    //function to run the SQL query with the parameters to mimic the paging and additional features.
+
+    //function to fetch the data with a SQL query, where options is the section of the SQL query that will filter, sort, and page the data
     const fetchIauWithSQL = async(options : string) => {
         setLoading2(true);
         try {
-            console.log("OPTIONS: " + options)
+            //console.log("OPTIONS: " + options)
             const response = await fetch(url + "/sql/iauData/" + options);
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
@@ -168,9 +174,7 @@ const iauDataGrid : React.FC = () => {
         }
     }
 
-    
-
-
+    //function that handles when the user clicks on a row to sort by that row
     const sortChange = (event: GridSortChangeEvent) => {
         console.log(event);
         const evsort = ({...event.sort})
@@ -180,69 +184,39 @@ const iauDataGrid : React.FC = () => {
             setSort(
                 [evsort[0].field, evsort[0].dir]
             );
-            queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
+            queryOptions += getSortInfo([evsort[0].field, evsort[0].dir])
         } else {
             setSort(
                 ["Item-code", "asc"]
             )
             queryOptions += " ORDER BY \"Item-code\" asc";
         }
-            //fetchNewTotalWithOptions(queryOptions);
             queryOptions += " " + getPageInfo(page);
             fetchIauWithSQL(queryOptions);
     }
 
+    //function that handles when the user filters the data
     const filterChange = (event: GridFilterChangeEvent) => {
         console.log(event);
         const evfilt = ({...event.filter})
-        var queryOptions = "WHERE " + getBetweenDateInfo(betDates) + ' AND '
+        var queryOptions = "WHERE " + getBetweenDateInfo(betDates) + ' AND ' 
         if (evfilt.filters != undefined){
-        setFilter(
-            evfilt.filters[0] as filter
-        );
-        const filt = evfilt.filters[0] as filter;
-        var filterField = filt.field
-       if (filterField == 'Seq-num'){
-            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
-        } else if (filterField == "Date-activity") {
-            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+            setFilter(
+                evfilt.filters[0] as filter
+            );
+            queryOptions += getFilterInfo(evfilt.filters[0] as filter)
         } else {
-            filterField = "\"" + filterField + "\"";
+            setFilter(
+                undefined
+            );
+            queryOptions+= " 1=1"
         }
-      switch(filt.operator){
-        case('contains'):
-          queryOptions +=  filterField + " LIKE \'*" + filt.value +"*\'"
-          break;
-        case("doesnotcontain"):
-          queryOptions +=  filterField + " NOT LIKE \'*" + filt.value +"*\'"
-          break;
-        case('eq'):
-          queryOptions +=  filterField + " = \'" + filt.value +"\'"
-          break;
-        case('neq'):
-          queryOptions +=  filterField + " != \'" + filt.value +"\'"
-          break;
-        case('startswith'):
-          queryOptions +=  filterField + " LIKE \'" + filt.value +"*\'"
-          break;
-        case('endswith'):
-          queryOptions +=  filterField + " LIKE \'*" + filt.value +"\'"
-          break;
-        case('isnull'):
-          queryOptions +=  filterField + " = \'\'"
-          break;
-      }
-    } else {
-      setFilter(
-        undefined
-      );
-      queryOptions+= " 1=1"
-    }
-    fetchNewTotalWithOptions(queryOptions)
-    queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
-    fetchIauWithSQL(queryOptions);
+        fetchNewTotalWithOptions(queryOptions)
+        queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
+        fetchIauWithSQL(queryOptions);
     }
 
+    //function to handle paging of the data
     const pageChange = (event: GridPageChangeEvent) => {
         const targetEvent = event.targetEvent as PagerTargetEvent;
         var take = event.page.take;
@@ -263,11 +237,12 @@ const iauDataGrid : React.FC = () => {
         if (targetEvent.value === 'All'){
             queryOptions += 'WHERE ' + getBetweenDateInfo(betDates) + ' AND ' + getFilterInfo(filter) + " " + getSortInfo(sort);
         } else {
-            queryOptions += 'WHERE ' + getBetweenDateInfo(betDates) + ' AND ' + getFilterInfo(filter) + " " + getSortInfo(sort) + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+            queryOptions += 'WHERE ' + getBetweenDateInfo(betDates) + ' AND ' + getFilterInfo(filter) + " " + getSortInfo(sort) + ' ' + getPageInfo({skip : newSkip,take : newPage} as PageState);
         }
         fetchIauWithSQL(queryOptions);
     }
 
+    //function to handle the reordering of the columns
     const handleColumnReorder = (event: GridColumnReorderEvent) => {
         const reorderedColumns = event.columns;
         const updateColumns = async () => {
@@ -284,6 +259,7 @@ const iauDataGrid : React.FC = () => {
         updateColumns();
     }
 
+    //function to handle the resizing of the columns
     const onColumnResize = (event: GridColumnResizeEvent) => {
         const newCols = cols;
         newCols.forEach( (element) => {
@@ -304,8 +280,8 @@ const iauDataGrid : React.FC = () => {
         updateColumns();
     }
 
+    //function to handle the submission of the data
     const handleSubmit = async (dataItems : {[startDate: string] : any } ) => {
-        console.log(dataItems.startDate)
         setBetDates({startDate: dataItems.startDate, endDate : dataItems.endDate} as betDateInfo)
         var queryOptions = 'WHERE ' + getBetweenDateInfo({startDate: dataItems.startDate, endDate : dataItems.endDate} as betDateInfo) + ' AND ' + getFilterInfo(filter) 
         fetchNewTotalWithOptions(queryOptions)
@@ -313,6 +289,7 @@ const iauDataGrid : React.FC = () => {
         fetchIauWithSQL(queryOptions)
     }
 
+    //function to fetch the initial total of the data. Only happens once
     useEffect(() => {
         const fetchTotal = async() => {
           try {
@@ -330,6 +307,7 @@ const iauDataGrid : React.FC = () => {
         fetchTotal();
       }, []);
 
+    // function to fetch the data initially. Only happens once
     useEffect(() => {
         const fetchIau = async () => {
             try {
@@ -341,6 +319,7 @@ const iauDataGrid : React.FC = () => {
         fetchIau();
     }, []);
     
+    //function that gets the saved column order for the user, or creates a new one if they don't have one.
     useEffect(() => {
         const fetchCols = async () => {
             try {
@@ -376,10 +355,6 @@ const iauDataGrid : React.FC = () => {
         <DrawerContainer>
             <p>Loading...</p>
         </DrawerContainer>);
-    // if (loading2) return (
-    //     <DrawerContainer>
-    //         <p>Loading...</p>
-    //     </DrawerContainer>);
     if (error) return <p>Error: {error}</p>;
     return (
     <DrawerContainer>
