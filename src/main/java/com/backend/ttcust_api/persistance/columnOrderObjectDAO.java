@@ -121,4 +121,20 @@ public class columnOrderObjectDAO {
             return col;
         }
     }
+
+    public columnOrderObject[] deleteByColumnId(String columnId) throws IOException{
+        synchronized(columnOrders){
+            ArrayList<columnOrderObject> removed = new ArrayList<>();
+            for (columnOrderObject coloo : columnOrders.values()){
+                if (coloo.getColumnId().equals(columnId)){
+                    removed.add(coloo);
+                    columnOrders.remove(coloo.getUserId() + coloo.getColumnId());
+                }
+            }
+            save();
+            columnOrderObject[] removedResult = new columnOrderObject[removed.size()];
+            removed.toArray(removedResult);
+            return removedResult;
+        }
+    }
 }

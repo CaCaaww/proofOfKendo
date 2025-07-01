@@ -123,5 +123,17 @@ public class columnOrderObjectController {
         }
     }
 
+    @DeleteMapping("/byCol/{columnId}")
+    public ResponseEntity<columnOrderObject[]> deleteColooByColId(@PathVariable String columnId){
+        LOG.info("Delete /coloo/byCol/" + columnId);
+        try {
+            columnOrderObject[] result = columnOrderObjectDAO.deleteByColumnId(columnId);
+            return new ResponseEntity<columnOrderObject[]>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
 

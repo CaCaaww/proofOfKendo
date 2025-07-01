@@ -16,7 +16,7 @@ const DrawerContainer = (props: { children: unknown; }) => {
     { text: 'Customer Data', route: '/data/' + id },
     { text: 'IAU Data', route: '/iauData/' + id},
     { separator: true },
-    { text: 'Logout', route: '/' },
+    { text: 'Logout', disabled: false,  route: '/' },
     ];
     const navigate = useNavigate();
     const [expanded, setExpanded] = useState<boolean>(true);

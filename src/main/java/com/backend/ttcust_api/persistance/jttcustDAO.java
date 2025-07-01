@@ -31,7 +31,7 @@ public class jttcustDAO {
 
             Class.forName ( "com.ddtek.jdbc.openedge.OpenEdgeDriver");
             con = DriverManager.getConnection ( jdbcURL, username, password );
-            con.setTransactionIsolation(1);
+            con.setTransactionIsolation(1); // no locks
             System.out.println("NO ERRORS THROWN WHEN TRYING TO CONNECT");
 
         }  catch (Exception e) {
@@ -285,7 +285,7 @@ public class jttcustDAO {
                 }
 
             }
-            String query = "SELECT \"Seq-num\", \"Item-code\", branch FROM pub.iau " + reformattedOptions ;
+            String query = "SELECT \"Seq-num\", \"Item-code\", branch, \"Date-activity\" FROM pub.iau " + reformattedOptions ;
             System.out.println("QUERY: " + query);
             Statement statement = con.createStatement();
             // execute the query and get the result set
@@ -295,8 +295,9 @@ public class jttcustDAO {
                 String seq = resultSet.getString("Seq-num");
                 String item = resultSet.getString("Item-code");
                 String branch = resultSet.getString("branch");
+                String dateActivity = resultSet.getString("Date-activity");
                 //System.out.println("[Customer: " + Customer + ", NAME: " + NAME + ", City: " + city + ", State: " + state + "]");
-                iauArrayList.add(new iauData(seq, item, branch));
+                iauArrayList.add(new iauData(seq, item, branch, dateActivity));
             }
             iauData[] result = new iauData[iauArrayList.size()];
             iauArrayList.toArray(result);

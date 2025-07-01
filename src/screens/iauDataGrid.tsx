@@ -9,6 +9,7 @@ interface iauData{
     seqNum: string;
     itemCode: string;
     branch: string;
+    dateActivity: string;
 }
 interface column {
   field: string;
@@ -30,6 +31,7 @@ const initialColumns = [
   { field: "Seq-num", title: "Seq-num", orderIndex: 0, width: '150px'},
   { field: "Item-code", title: "Item-code", orderIndex: 1, width: '200px' },
   { field: "Branch", title: "Branch", orderIndex: 2, width: '150px' },
+  { field: "Date-activity", title: "Date-Activity", orderIndex: 3, width: '150px'},
   ];
 
 
@@ -59,7 +61,10 @@ const iauDataGrid : React.FC = () => {
         var queryOptions = ""
         if (filterInfo != undefined) {
         var filterField = filterInfo.field
+        var filterValue = filterInfo.value
         if (filterField == 'Seq-num'){
+            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+        } else if (filterField == "Date-activity") {
             filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
         } else {
             filterField = "\"" + filterField + "\"";
@@ -72,10 +77,10 @@ const iauDataGrid : React.FC = () => {
                 queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filterInfo.value +"*\'"
                 break;
             case('eq'):
-                queryOptions += "WHERE \"" + filterInfo.field + "\" = \'" + filterInfo.value +"\'"
+                queryOptions += "WHERE " + filterField + " = \'" + filterInfo.value +"\'"
                 break;
             case('neq'):
-                queryOptions += "WHERE \"" + filterInfo.field + "\" != \'" + filterInfo.value +"\'"
+                queryOptions += "WHERE " + filterField + " != \'" + filterInfo.value +"\'"
                 break;
             case('startswith'):
                 queryOptions += "WHERE " + filterField + " LIKE \'" + filterInfo.value +"*\'"
@@ -84,7 +89,7 @@ const iauDataGrid : React.FC = () => {
                 queryOptions += "WHERE " + filterField + " LIKE \'*" + filterInfo.value +"\'"
                 break;
             case('isnull'):
-                queryOptions += "WHERE \"" + filterInfo.field + "\" = \'\'"
+                queryOptions += "WHERE " + filterField + " = \'\'"
                 break;
         }
         } 
@@ -163,11 +168,13 @@ const iauDataGrid : React.FC = () => {
       );
       const filt = evfilt.filters[0] as filter;
       var filterField = filt.field
-      if (filterField == 'Seq-num'){
-        filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
-      } else {
-        filterField = "\"" + filterField + "\"";
-      }
+       if (filterField == 'Seq-num'){
+            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+        } else if (filterField == "Date-activity") {
+            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+        } else {
+            filterField = "\"" + filterField + "\"";
+        }
       switch(filt.operator){
         case('contains'):
           queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"*\'"
@@ -176,10 +183,10 @@ const iauDataGrid : React.FC = () => {
           queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filt.value +"*\'"
           break;
         case('eq'):
-          queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
+          queryOptions += "WHERE " + filterField + " = \'" + filt.value +"\'"
           break;
         case('neq'):
-          queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
+          queryOptions += "WHERE " + filterField + " != \'" + filt.value +"\'"
           break;
         case('startswith'):
           queryOptions += "WHERE " + filterField + " LIKE \'" + filt.value +"*\'"
@@ -188,7 +195,7 @@ const iauDataGrid : React.FC = () => {
           queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"\'"
           break;
         case('isnull'):
-          queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
+          queryOptions += "WHERE " + filterField + " = \'\'"
           break;
       }
     } else {
