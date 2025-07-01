@@ -4,6 +4,10 @@ import "@progress/kendo-theme-default/dist/all.css";
 import { useParams } from 'react-router-dom';
 import DrawerContainer from './drawerContainer';
 import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
+import { Field, FieldWrapper, FormElement, Form, FieldRenderProps, FormRenderProps } from '@progress/kendo-react-form';
+import { Input } from '@progress/kendo-react-inputs';
+import { Button } from '@progress/kendo-react-buttons';
+import { Error as Error2 } from '@progress/kendo-react-labels';
 
 interface iauData{
     seqNum: string;
@@ -26,6 +30,10 @@ interface filter {
   operator: string;
   value: string;
 }
+interface betDateInfo {
+    startDate : string;
+    endDate: string;
+}
 const initialDataState: PageState = { skip: 0, take: 15 };
 const initialColumns = [
   { field: "Seq-num", title: "Seq-num", orderIndex: 0, width: '150px'},
@@ -33,6 +41,7 @@ const initialColumns = [
   { field: "Branch", title: "Branch", orderIndex: 2, width: '150px' },
   { field: "Date-activity", title: "Date-Activity", orderIndex: 3, width: '150px'},
   ];
+
 
 
 const url = 'http://localhost:8080/jttcust'
@@ -54,45 +63,69 @@ const iauDataGrid : React.FC = () => {
     const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
     const [sort, setSort] = useState<[string, string | undefined]>(["Item-code", "asc"]);
     const [filter, setFilter] = useState<filter | undefined>(undefined);
-    
 
+    const initialDates = {startDate: '01-01-2024', endDate: '01-01-3000'}
+    const [betDates, setBetDates] = useState<betDateInfo>(initialDates as betDateInfo);
+
+    const dateRegex: RegExp = new RegExp(/^\d\d\-\d\d\-\d\d\d\d$/);
+    const dateValidator = (value: string) => (dateRegex.test(value) ? '' : 'Please enter a valid date.');
+    const dateInput = (fieldRenderProps: FieldRenderProps) => {
+    const { validationMessage, visited, ...others } = fieldRenderProps;
+    return (
+        <div>
+            <Input {...others} />
+            {visited && validationMessage && <Error2>{validationMessage}</Error2>}
+        </div>
+    );
+};
+    
+    function getBetweenDateInfo(dateInfo: betDateInfo) : string {
+        //var queryOptions = "\"Date-activity\" in" 
+        //queryOptions += " (SELECT \"Date-activity\" FROM pub.iau WHERE \"Date-activity\" >= TO_DATE(\'" + dateInfo.startDate + "\')" 
+        //queryOptions += " AND \"Date-activity\" <= TO_DATE(\'" + dateInfo.endDate + "\'))"
+        var queryOptions = "\"Date-activity\" BETWEEN TO_DATE(\'" + dateInfo.startDate + "\') AND TO_DATE(\'" + dateInfo.endDate + "\')" 
+        //var queryOptions = "\"Date-activity\" >= TO_DATE(\'01-01-2023\')"
+        return queryOptions;
+    }
 
     function getFilterInfo(filterInfo : filter | undefined) : string {
         var queryOptions = ""
         if (filterInfo != undefined) {
-        var filterField = filterInfo.field
-        var filterValue = filterInfo.value
-        if (filterField == 'Seq-num'){
-            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
-        } else if (filterField == "Date-activity") {
-            filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+            var filterField = filterInfo.field
+            //var filterValue = filterInfo.value
+            if (filterField == 'Seq-num'){
+                filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+            } else if (filterField == "Date-activity") {
+                filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
+            } else {
+                filterField = "\"" + filterField + "\"";
+            }
+            switch(filterInfo.operator){
+                case('contains'):
+                    queryOptions +=  filterField + " LIKE \'*" + filterInfo.value +"*\'"
+                    break;
+                case("doesnotcontain"):
+                    queryOptions +=  filterField + " NOT LIKE \'*" + filterInfo.value +"*\'"
+                    break;
+                case('eq'):
+                    queryOptions +=  filterField + " = \'" + filterInfo.value +"\'"
+                    break;
+                case('neq'):
+                    queryOptions +=  filterField + " != \'" + filterInfo.value +"\'"
+                    break;
+                case('startswith'):
+                    queryOptions +=  filterField + " LIKE \'" + filterInfo.value +"*\'"
+                    break;
+                case('endswith'):
+                    queryOptions +=  filterField + " LIKE \'*" + filterInfo.value +"\'"
+                    break;
+                case('isnull'):
+                    queryOptions +=  filterField + " = \'\'"
+                    break;
+            }
         } else {
-            filterField = "\"" + filterField + "\"";
+            queryOptions += "1=1"
         }
-        switch(filterInfo.operator){
-            case('contains'):
-                queryOptions += "WHERE " + filterField + " LIKE \'*" + filterInfo.value +"*\'"
-                break;
-            case("doesnotcontain"):
-                queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filterInfo.value +"*\'"
-                break;
-            case('eq'):
-                queryOptions += "WHERE " + filterField + " = \'" + filterInfo.value +"\'"
-                break;
-            case('neq'):
-                queryOptions += "WHERE " + filterField + " != \'" + filterInfo.value +"\'"
-                break;
-            case('startswith'):
-                queryOptions += "WHERE " + filterField + " LIKE \'" + filterInfo.value +"*\'"
-                break;
-            case('endswith'):
-                queryOptions += "WHERE " + filterField + " LIKE \'*" + filterInfo.value +"\'"
-                break;
-            case('isnull'):
-                queryOptions += "WHERE " + filterField + " = \'\'"
-                break;
-        }
-        } 
         return queryOptions;
     }
     function getPageInfo(pageInfo : PageState) : string {
@@ -121,6 +154,7 @@ const iauDataGrid : React.FC = () => {
     const fetchIauWithSQL = async(options : string) => {
         setLoading2(true);
         try {
+            console.log("OPTIONS: " + options)
             const response = await fetch(url + "/sql/iauData/" + options);
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
@@ -140,8 +174,8 @@ const iauDataGrid : React.FC = () => {
     const sortChange = (event: GridSortChangeEvent) => {
         console.log(event);
         const evsort = ({...event.sort})
-        var queryOptions = "";
-        queryOptions += getFilterInfo(filter);
+        var queryOptions = "WHERE ";
+        queryOptions += getBetweenDateInfo(betDates) + ' AND ' + getFilterInfo(filter);
         if (evsort[0] != undefined){
             setSort(
                 [evsort[0].field, evsort[0].dir]
@@ -160,14 +194,14 @@ const iauDataGrid : React.FC = () => {
 
     const filterChange = (event: GridFilterChangeEvent) => {
         console.log(event);
-    const evfilt = ({...event.filter})
-    var queryOptions = ""
-    if (evfilt.filters != undefined){
-      setFilter(
-        evfilt.filters[0] as filter
-      );
-      const filt = evfilt.filters[0] as filter;
-      var filterField = filt.field
+        const evfilt = ({...event.filter})
+        var queryOptions = "WHERE " + getBetweenDateInfo(betDates) + ' AND '
+        if (evfilt.filters != undefined){
+        setFilter(
+            evfilt.filters[0] as filter
+        );
+        const filt = evfilt.filters[0] as filter;
+        var filterField = filt.field
        if (filterField == 'Seq-num'){
             filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
         } else if (filterField == "Date-activity") {
@@ -177,32 +211,32 @@ const iauDataGrid : React.FC = () => {
         }
       switch(filt.operator){
         case('contains'):
-          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"*\'"
+          queryOptions +=  filterField + " LIKE \'*" + filt.value +"*\'"
           break;
         case("doesnotcontain"):
-          queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filt.value +"*\'"
+          queryOptions +=  filterField + " NOT LIKE \'*" + filt.value +"*\'"
           break;
         case('eq'):
-          queryOptions += "WHERE " + filterField + " = \'" + filt.value +"\'"
+          queryOptions +=  filterField + " = \'" + filt.value +"\'"
           break;
         case('neq'):
-          queryOptions += "WHERE " + filterField + " != \'" + filt.value +"\'"
+          queryOptions +=  filterField + " != \'" + filt.value +"\'"
           break;
         case('startswith'):
-          queryOptions += "WHERE " + filterField + " LIKE \'" + filt.value +"*\'"
+          queryOptions +=  filterField + " LIKE \'" + filt.value +"*\'"
           break;
         case('endswith'):
-          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"\'"
+          queryOptions +=  filterField + " LIKE \'*" + filt.value +"\'"
           break;
         case('isnull'):
-          queryOptions += "WHERE " + filterField + " = \'\'"
+          queryOptions +=  filterField + " = \'\'"
           break;
       }
     } else {
       setFilter(
         undefined
       );
-      queryOptions+= "WHERE 1=1"
+      queryOptions+= " 1=1"
     }
     fetchNewTotalWithOptions(queryOptions)
     queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
@@ -227,9 +261,9 @@ const iauDataGrid : React.FC = () => {
         const newPage = {...event.page}.take
         var queryOptions = "";
         if (targetEvent.value === 'All'){
-            queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort);
+            queryOptions += 'WHERE ' + getBetweenDateInfo(betDates) + ' AND ' + getFilterInfo(filter) + " " + getSortInfo(sort);
         } else {
-            queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort) + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+            queryOptions += 'WHERE ' + getBetweenDateInfo(betDates) + ' AND ' + getFilterInfo(filter) + " " + getSortInfo(sort) + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
         }
         fetchIauWithSQL(queryOptions);
     }
@@ -270,10 +304,19 @@ const iauDataGrid : React.FC = () => {
         updateColumns();
     }
 
+    const handleSubmit = async (dataItems : {[startDate: string] : any } ) => {
+        console.log(dataItems.startDate)
+        setBetDates({startDate: dataItems.startDate, endDate : dataItems.endDate} as betDateInfo)
+        var queryOptions = 'WHERE ' + getBetweenDateInfo({startDate: dataItems.startDate, endDate : dataItems.endDate} as betDateInfo) + ' AND ' + getFilterInfo(filter) 
+        fetchNewTotalWithOptions(queryOptions)
+        queryOptions += ' ' + getSortInfo(sort) +  ' ' + getPageInfo(page)
+        fetchIauWithSQL(queryOptions)
+    }
+
     useEffect(() => {
         const fetchTotal = async() => {
           try {
-            const result = await fetch(url + "/iauData/total/WHERE 1=1")
+            const result = await fetch(url + "/iauData/total/WHERE  " + getBetweenDateInfo(betDates))
             if (!result.ok){
               throw new Error(`Error: ${result.statusText}`);
             }
@@ -290,7 +333,7 @@ const iauDataGrid : React.FC = () => {
     useEffect(() => {
         const fetchIau = async () => {
             try {
-                fetchIauWithSQL(getSortInfo(sort) + ' ' + getPageInfo(page));
+                fetchIauWithSQL('WHERE ' + getBetweenDateInfo(betDates) + ' '  + getSortInfo(sort) + ' ' + getPageInfo(page));
             } catch (err) {
                 console.error("Error fetching data:", err)
             }
@@ -341,7 +384,48 @@ const iauDataGrid : React.FC = () => {
     return (
     <DrawerContainer>
       <div>
-        <h1>Customers</h1>
+        <h1>IAU Data</h1>
+        <Form
+        onSubmit={handleSubmit}
+        initialValues={{
+            startDate: '01-01-1900',
+            endDate : '01-01-3000'
+        }}
+        render = {(formRenderProps: FormRenderProps) =>(
+            <FormElement>
+                <fieldset className={'k-form-fieldset'}>
+                        <FieldWrapper>
+                            <div className="k-form-field-wrap">
+                                <Field
+                                    name={'startDate'}
+                                    component={dateInput}
+                                    label={'Begin Date'}
+                                    labelClassName="k-form-label"
+                                    validator={dateValidator}
+                                />
+                            </div>
+                        </FieldWrapper>
+
+                        <FieldWrapper>
+                            <div className="k-form-field-wrap">
+                                <Field
+                                    name={'endDate'}
+                                    component={dateInput}
+                                    label={'End Date'}
+                                    labelClassName="k-form-label"
+                                    validator={dateValidator}
+                                />
+                            </div>
+                        </FieldWrapper>
+
+                    </fieldset>
+                    <div className="k-form-buttons">
+                        <Button disabled={!formRenderProps.allowSubmit}>Submit</Button>
+                    </div>
+            </FormElement>
+
+        )}
+        />
         {loading2? <p>loading...</p>: <p></p>}
         <Grid
           style={{ height: '700px'}} 
