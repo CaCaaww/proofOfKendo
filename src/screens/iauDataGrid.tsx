@@ -36,10 +36,10 @@ interface betDateInfo {
 }
 const initialDataState: PageState = { skip: 0, take: 15 };
 const initialColumns = [
-  { field: "Seq-num", title: "Seq-num", orderIndex: 0, width: '150px'},
+  { field: "Seq-num", title: "Seq-num", orderIndex: 3, width: '150px'},
   { field: "Item-code", title: "Item-code", orderIndex: 1, width: '200px' },
   { field: "Branch", title: "Branch", orderIndex: 2, width: '150px' },
-  { field: "Date-activity", title: "Date-Activity", orderIndex: 3, width: '150px'},
+  { field: "Date-activity", title: "Date-Activity", orderIndex: 0, width: '150px'},
   ];
 
 
@@ -62,10 +62,10 @@ const iauDataGrid : React.FC = () => {
     const [numButtons, setNumButtons] = useState<number> (5); //number of page buttons on the bottom scrollbar
     const [page, setPage] = useState<PageState>(initialDataState); //stores a PageState, which stores the skip and take of a page.
     const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>(); //stores how many rows per page.
-    const [sort, setSort] = useState<[string, string | undefined]>(["Item-code", "asc"]); //stores the parameters for sorting the data (what column to sort by and asc or desc)
+    const [sort, setSort] = useState<[string, string | undefined]>(["Date-activity", "asc"]); //stores the parameters for sorting the data (what column to sort by and asc or desc)
     const [filter, setFilter] = useState<filter | undefined>(undefined); //stores the filter paramets (column to filter by, how much of the string needs to match, and the value to match it against)
 
-    const initialDates = {startDate: '01-01-2024', endDate: '01-01-3000'} //the initial dates that the data is bounded by
+    const initialDates = {startDate: '07-01-2020', endDate: '01-01-3000'} //the initial dates that the data is bounded by
     const [betDates, setBetDates] = useState<betDateInfo>(initialDates as betDateInfo); //storing the dates that the data is bounded by
 
     const dateRegex: RegExp = new RegExp(/^\d\d\-\d\d\-\d\d\d\d$/); //Regex to check if an inputed date is in the correct format
@@ -187,9 +187,9 @@ const iauDataGrid : React.FC = () => {
             queryOptions += getSortInfo([evsort[0].field, evsort[0].dir])
         } else {
             setSort(
-                ["Item-code", "asc"]
+                ["Date-activity", "asc"]
             )
-            queryOptions += " ORDER BY \"Item-code\" asc";
+            queryOptions += " ORDER BY \"Date-activity\" asc";
         }
             queryOptions += " " + getPageInfo(page);
             fetchIauWithSQL(queryOptions);
@@ -363,7 +363,7 @@ const iauDataGrid : React.FC = () => {
         <Form
         onSubmit={handleSubmit}
         initialValues={{
-            startDate: '01-01-1900',
+            startDate: '07-01-2020',
             endDate : '01-01-3000'
         }}
         render = {(formRenderProps: FormRenderProps) =>(
