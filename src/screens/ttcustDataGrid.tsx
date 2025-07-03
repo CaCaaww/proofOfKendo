@@ -57,7 +57,7 @@ const ttcustDataGrid : React.FC = () => {
   const { id } = useParams()
   const userId = id as string;
   const [total, setTotal] = useState<number> (0);
-  const [numButtons, setNumButtons] = useState<number> (5);
+  const [numButtons] = useState<number> (5);
 
   
 
@@ -69,7 +69,7 @@ const ttcustDataGrid : React.FC = () => {
   const [page2, setPage2] = useState<PageState>(initialDataState);
   const [pageSizeValue2, setPageSizeValue2] = useState<number | string | undefined>();
   const [total2, setTotal2] = useState<number> (0);
-  const [numButtons2, setNumButtons2] = useState<number> (5);
+  const [numButtons2] = useState<number> (5);
   const [sort2, setSort2] = useState<[string, string | undefined]>(["customer", "asc"]);
   const [filter2, setFilter2] = useState<filter | undefined>(undefined);
   const [data2, setData2] = useState<SEQ_Data[]>([]);
@@ -503,6 +503,7 @@ const ttcustDataGrid : React.FC = () => {
               },
         body: JSON.stringify({"userId": userId, "columnId": "custData", "dataColumns": newCols as column[]})
       });
+      console.log(responseUpdate)
       setCols(newCols);
     }
     updateColumns();
