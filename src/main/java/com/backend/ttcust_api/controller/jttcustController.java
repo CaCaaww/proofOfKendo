@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 @RestController
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin("http://localhost:8040")
 @RequestMapping("/jttcust")
 public class jttcustController {
     private static final Logger LOG = Logger.getLogger(ttcustController.class.getName());

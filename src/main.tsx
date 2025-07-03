@@ -9,12 +9,12 @@ import Home from './screens/home.tsx'
 import IauDataGrid from './screens/iauDataGrid.tsx';
 
 createRoot(document.getElementById('root')!).render(
-    <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/data/:id" element={<App />} />
-          <Route path="/home/:id" element={<Home />} />
-          <Route path="/iauData/:id" element={<IauDataGrid/> } />
-        </Routes>
-    </BrowserRouter>
+      <BrowserRouter basename="/your-app" >
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/data/:id" element={<App />} />
+            <Route path="/home/:id" element={<Home />} />
+            <Route path="/iauData/:id" element={<IauDataGrid/> } />
+          </Routes>
+      </BrowserRouter>
 )
