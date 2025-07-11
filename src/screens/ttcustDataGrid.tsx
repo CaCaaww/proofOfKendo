@@ -7,8 +7,8 @@ import DrawerContainer from './drawerContainer';
 
 //import './App.css'
 
-const url = 'http://localhost:8080/jttcust'
-const colooUrl = 'http://localhost:8080/coloo'
+const url = 'http://localhost:8040/ttcustBackend/jttcust'
+const colooUrl = 'http://localhost:8040/ttcustBackend/coloo'
 
 //column Id is: custData
 
@@ -440,7 +440,7 @@ const ttcustDataGrid : React.FC = () => {
             throw new Error(`Error: ${response.statusText}`);
           }
           setCols(initialColumns)
-          const response2 = await fetch('http://localhost:8080/coloo', {
+          const response2 = await fetch(colooUrl, {
             method: "POST",
             headers: {
               'Content-Type': 'application/json',
@@ -467,7 +467,7 @@ const ttcustDataGrid : React.FC = () => {
             throw new Error(`Error: ${response.statusText}`);
           }
           setCols(initialColumns)
-          const response2 = await fetch('http://localhost:8080/coloo', {
+          const response2 = await fetch(colooUrl, {
             method: "POST",
             headers: {
               'Content-Type': 'application/json',
@@ -496,7 +496,7 @@ const ttcustDataGrid : React.FC = () => {
       }
     })
     const updateColumns = async () => {
-      const responseUpdate = await fetch("http://localhost:8080/coloo", {
+      const responseUpdate = await fetch(colooUrl, {
         method: "PUT",
         headers: {
                 'Content-Type': 'application/json',
@@ -517,7 +517,7 @@ const ttcustDataGrid : React.FC = () => {
       }
     })
     const updateColumns = async () => {
-      const responseUpdate = await fetch("http://localhost:8080/coloo", {
+      const responseUpdate = await fetch(colooUrl, {
         method: "PUT",
         headers: {
                 'Content-Type': 'application/json',
@@ -533,7 +533,7 @@ const ttcustDataGrid : React.FC = () => {
   const handleColumnReorder = (event: { columns: any; }) => {
     const reorderedColumns = event.columns;
     const updateColumns = async () => {
-      const responseUpdate = await fetch("http://localhost:8080/coloo", {
+      const responseUpdate = await fetch(colooUrl, {
         method: "PUT",
         headers: {
                 'Content-Type': 'application/json',
@@ -550,7 +550,7 @@ const ttcustDataGrid : React.FC = () => {
   const handleColumnReorder2 = (event: { columns: any; }) => {
     const reorderedColumns = event.columns;
     const updateColumns = async () => {
-      const responseUpdate = await fetch("http://localhost:8080/coloo", {
+      const responseUpdate = await fetch(colooUrl, {
         method: "PUT",
         headers: {
                 'Content-Type': 'application/json',

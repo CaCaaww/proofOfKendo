@@ -7,7 +7,7 @@ import "@progress/kendo-theme-default/dist/all.css"
 import { useNavigate } from 'react-router-dom';
 
 
-const loginUrl = "http://localhost:8080/jttcust/login"
+const loginUrl = "http://localhost:8040/ttcustBackend/jttcust/login"
 
 
 

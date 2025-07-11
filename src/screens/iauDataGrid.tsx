@@ -50,8 +50,8 @@ const initialColumns = [
 
 
 
-const url = 'http://localhost:8080/jttcust' //the url to talk to the jdbc -- where the data is largely grabbed from
-const colooUrl = 'http://localhost:8080/coloo' //the url to talk to the json file that stores the column order information
+const url = 'http://localhost:8040/ttcustBackend/jttcust' //the url to talk to the jdbc -- where the data is largely grabbed from
+const colooUrl = 'http://localhost:8040/ttcustBackend/coloo' //the url to talk to the json file that stores the column order information
 
 const iauDataGrid : React.FC = () => {
     // these two are the userId parameters, gotten from the login and carried through the route URL's
@@ -267,7 +267,7 @@ const iauDataGrid : React.FC = () => {
     const handleColumnReorder = (event: GridColumnReorderEvent) => {
         const reorderedColumns = event.columns;
         const updateColumns = async () => { // we call and update request, knowing that the user will have a column order object to update because if they didn't have one, one would be given to them when they accessed the grid
-            const responseUpdate = await fetch("http://localhost:8080/coloo", {
+            const responseUpdate = await fetch(colooUrl, {
                 method: "PUT",
                 headers: {
                         'Content-Type': 'application/json',
@@ -289,7 +289,7 @@ const iauDataGrid : React.FC = () => {
         }
         })
         const updateColumns = async () => {
-            const responseUpdate = await fetch("http://localhost:8080/coloo", {
+            const responseUpdate = await fetch(colooUrl, {
                 method: "PUT",
                 headers: {
                         'Content-Type': 'application/json',
@@ -354,7 +354,7 @@ const iauDataGrid : React.FC = () => {
                         throw new Error(`Error: ${response.statusText}`);
                     }
                     setCols(initialColumns)
-                        const response2 = await fetch('http://localhost:8080/coloo', {
+                        const response2 = await fetch(colooUrl, {
                             method: "POST",
                             headers: {
                             'Content-Type': 'application/json',
