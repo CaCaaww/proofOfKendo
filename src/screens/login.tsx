@@ -7,7 +7,9 @@ import "@progress/kendo-theme-default/dist/all.css"
 import { useNavigate } from 'react-router-dom';
 
 
-const loginUrl = "http://localhost:8040/ttcustBackend/jttcust/login"
+//import api_url  from '../readConfig';
+import { APP_API_URL } from '../environment';
+const loginUrl = APP_API_URL + "/jttcust/login"
 
 
 
@@ -22,6 +24,7 @@ export function Login() {
         ); 
     };
     const handleSubmit = async (dataItem: { [Username: string]: any }) => {
+        //console.log(APP_URL_TEST)
         const username = dataItem.Username as string;
         const response = await fetch(loginUrl + "/" + username)
         if (!response.ok){
@@ -37,6 +40,7 @@ export function Login() {
             goToHomePage(data);
         }
     }
+
     return(
         <Form
             onSubmit={handleSubmit}

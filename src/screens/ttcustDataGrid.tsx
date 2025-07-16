@@ -4,11 +4,11 @@ import "@progress/kendo-theme-default/dist/all.css";
 import { useParams } from 'react-router-dom';
 import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
 import DrawerContainer from './drawerContainer';
-
+import { APP_API_URL } from '../environment';
 //import './App.css'
 
-const url = 'http://localhost:8040/ttcustBackend/jttcust'
-const colooUrl = 'http://localhost:8040/ttcustBackend/coloo'
+const url = APP_API_URL + '/jttcust'
+const colooUrl = APP_API_URL + '/coloo'
 
 //column Id is: custData
 
@@ -81,54 +81,22 @@ const ttcustDataGrid : React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchTotal = async() => {
-      try {
-        const result = await fetch(url + "/total")
-        if (!result.ok){
-          throw new Error(`Error: ${result.statusText}`);
-        }
-        setTotal(await result.json());
-      } catch (err) {
-        setError((err as Error).message);
-      }
-    }
-    fetchTotal();
-  }, []);
   
-
-  useEffect(() => {
-    const fetchCusts = async () => {
-      try {
-        // const response = await
-        // fetch(url + "/btw/" + page.take + "," + page.skip);
-        // if (!response.ok) {
-        //   throw new Error(`Error: ${response.statusText}`);
-        // }
-        // const data: Customer[] = await response.json();
-        // //console.log(data)
-        // setCusts(data)
-        fetchCustsWithSQL(getPageInfo(page));
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCusts();
-  }, []);
 
   // getting info for the different parts of the SQL query
   function getFilterInfo(filterInfo : filter | undefined) : string {
     var queryOptions = ""
+    //make sure the filter is not undefined (is undefined if the user cancels the filter, as the event triggers and passes an undefined filter)
     if (filterInfo != undefined) {
       var filterField = filterInfo.field
+      // the seq-num field is a number, and cannot use the 'LIKE %1%' stuff on it in SQL, so we need to case the **field** (not the number passed,
+      // as it will be passed as a string by the ' ' anyways) to a string. 
       if (filterField == 'Seq-num'){
         filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
       } else {
         filterField = "\"" + filterField + "\"";
       }
+      //a switch case to determine which keyword for matching to use, as different ones are required for different amounts of the total string that need to match
       switch(filterInfo.operator){
           case('contains'):
             queryOptions += "WHERE " + filterField + " LIKE \'*" + filterInfo.value +"*\'"
@@ -155,23 +123,26 @@ const ttcustDataGrid : React.FC = () => {
     } 
     return queryOptions;
   }
+  // function to return the part of the SQL query that will mimic the paging, by selecting a subsection of the data to display.
   function getPageInfo(pageInfo : PageState) : string {
     const result = "OFFSET " + pageInfo.skip as string + " ROWS FETCH NEXT " + pageInfo.take as string + " ROWS ONLY ";
     return result;
   }
-
+  // function to return the part of the SQL query that will sort the data. 
   function getSortInfo(sortInfo : [String, String | undefined]) : string {
     const result = "ORDER BY \"" + sortInfo[0] as string + "\" " + sortInfo[1] as string;
     return result;
   }
 
-  //function to get the new total after the query
+  //function to get the new total of customers. Used after the amount of data has been reduced.
   const fetchNewTotalWithOptions = async(options: string) => {
      try {
+      // fetch the number of data
       const response = await fetch(url + "/custData/total/" + options);
-      if (!response.ok) {
+      if (!response.ok) { //throw an error if the API doesn't return an httpstatus of OK
           throw new Error(`Error: ${response.statusText}`);
         }
+      // set the total const
       const newTotal = await response.json()
       setTotal(newTotal);
     } catch (err){
@@ -179,12 +150,15 @@ const ttcustDataGrid : React.FC = () => {
     }
   }
 
+  //function to get the new total of seqData. Used after the amount of data has been reduced.
   const fetchNewSeqTotalWithOptions = async(options: string) => {
      try {
+      // fetch the number of data
       const response = await fetch(url + "/seqData/total/" + options);
-      if (!response.ok) {
+      if (!response.ok) { //throw an error if the API doesn't return an httpstatus of OK
           throw new Error(`Error: ${response.statusText}`);
         }
+      // set the total const
       const newTotal = await response.json()
       setTotal2(newTotal);
     } catch (err){
@@ -192,13 +166,15 @@ const ttcustDataGrid : React.FC = () => {
     }
   }
 
-  //function to run the SQL query with the parameters to mimic the paging and additional features.
+  //function to run the SQL query with the parameters to mimic the paging and additional features of the customer data.
   const fetchCustsWithSQL = async(options : string) => {
     try {
+      // fetching the data
       const response = await fetch(url + "/sql/custData/" + options);
-      if (!response.ok) {
+      if (!response.ok) { //throw an error if the API doesn't return an httpstatus of OK
           throw new Error(`Error: ${response.statusText}`);
         }
+      // setting the data constant
       const data: Customer[] = await response.json();
       setCusts(data)
     } catch (err){
@@ -206,15 +182,16 @@ const ttcustDataGrid : React.FC = () => {
     }
   }
 
+  //function to run an SQL query with parameters to mimic the paging and additional features of the seqData.
   const fetchSeqWithSQL = async(options : string) => {
     try {
-      //console.log("HERE")
+      // fetching the data
       const response = await fetch(url + "/sql/seqData/" + options);
-      if (!response.ok) {
+      if (!response.ok) { //throw an error if the API doesn't return an httpstatus of OK
           throw new Error(`Error: ${response.statusText}`);
         }
+      // setting the data constant
       const newData2: SEQ_Data[] = await response.json();
-      //console.log(newData2);
       setData2(newData2)
     } catch (err){
       setError((err as Error).message);
@@ -231,14 +208,17 @@ const ttcustDataGrid : React.FC = () => {
       setSort(
         [evsort[0].field, evsort[0].dir]
       );
-      queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
+      // adding the sortInfo to the query by calling the getSortInfo, but **passing the new data into it instead of the sort constant** because the sort constant
+      // does not update -- for whatever reason -- before this is called. 
+      queryOptions += getSortInfo([evsort[0].field, evsort[0].dir]);
+      //queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
     } else {
       setSort(
         ["Customer", "asc"]
       )
       queryOptions += " ORDER BY Customer asc";
     }
-    //fetchNewTotalWithOptions(queryOptions);
+    //sorting the data does not change the amount of data, so it does not try fetching a new total.
     queryOptions += " " + getPageInfo(page);
     fetchCustsWithSQL(queryOptions);
   }
@@ -249,6 +229,7 @@ const ttcustDataGrid : React.FC = () => {
     var queryOptions = "";
     var filterInfo = getFilterInfo(filter2);
         var queryOptions = "";
+        // have to add an additional part to the filter because this data is already filtered by a certain customer.
         if (filterInfo === "") {
           queryOptions += "WHERE \"Customer\" = \'" + clickedCustomer + "\' "  
         } else {
@@ -258,14 +239,15 @@ const ttcustDataGrid : React.FC = () => {
       setSort2(
         [evsort[0].field, evsort[0].dir]
       );
-      queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
+      queryOptions += getSortInfo([evsort[0].field, evsort[0].dir]);
+      //queryOptions += " ORDER BY \"" + evsort[0].field + "\" " + evsort[0].dir;
     } else {
       setSort2(
         ["Customer", "asc"]
       )
       queryOptions += " ORDER BY Customer asc";
     }
-    //fetchNewTotalWithOptions(queryOptions);
+    // does not need to fetch a new total because the size of the data is not being changed. 
     queryOptions += " " + getPageInfo(page2);
     fetchSeqWithSQL(queryOptions);
   }
@@ -279,35 +261,14 @@ const ttcustDataGrid : React.FC = () => {
         evfilt.filters[0] as filter
       );
       const filt = evfilt.filters[0] as filter;
-      switch(filt.operator){
-        case('contains'):
-          queryOptions += "WHERE \"" + filt.field + "\" LIKE \'*" + filt.value +"*\'"
-          break;
-        case("doesnotcontain"):
-          queryOptions += "WHERE \"" + filt.field + "\" NOT LIKE \'*" + filt.value +"*\'"
-          break;
-        case('eq'):
-          queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
-          break;
-        case('neq'):
-          queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
-          break;
-        case('startswith'):
-          queryOptions += "WHERE \"" + filt.field + "\" LIKE \'" + filt.value +"*\'"
-          break;
-        case('endswith'):
-          queryOptions += "WHERE \"" + filt.field + "\" LIKE \'*" + filt.value +"\'"
-          break;
-        case('isnull'):
-          queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
-          break;
-      }
+      queryOptions += getFilterInfo(filt)
     } else {
       setFilter(
         undefined
       );
       queryOptions+= "WHERE 1=1"
     }
+    // size of data is being changed and as such the data needs to be recounted.
     fetchNewTotalWithOptions(queryOptions)
     queryOptions += ' ' + getSortInfo(sort) + ' ' + getPageInfo(page)
     fetchCustsWithSQL(queryOptions);
@@ -322,42 +283,16 @@ const ttcustDataGrid : React.FC = () => {
         evfilt.filters[0] as filter
       );
       const filt = evfilt.filters[0] as filter;
-      var filterField = filt.field
-      if (filterField == 'Seq-num'){
-        filterField = "CAST(\"" + filterField + "\" AS VARCHAR(12))";
-      } else {
-        filterField = "\"" + filterField + "\"";
-      }
-      switch(filt.operator){
-        case('contains'):
-          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"*\'"
-          break;
-        case("doesnotcontain"):
-          queryOptions += "WHERE " + filterField + " NOT LIKE \'*" + filt.value +"*\'"
-          break;
-        case('eq'):
-          queryOptions += "WHERE \"" + filt.field + "\" = \'" + filt.value +"\'"
-          break;
-        case('neq'):
-          queryOptions += "WHERE \"" + filt.field + "\" != \'" + filt.value +"\'"
-          break;
-        case('startswith'):
-          queryOptions += "WHERE " + filterField + " LIKE \'" + filt.value +"*\'"
-          break;
-        case('endswith'):
-          queryOptions += "WHERE " + filterField + " LIKE \'*" + filt.value +"\'"
-          break;
-        case('isnull'):
-          queryOptions += "WHERE \"" + filt.field + "\" = \'\'"
-          break;
-      }
+      queryOptions += getFilterInfo(filt);
     } else {
       setFilter2(
         undefined
       );
       queryOptions+= "WHERE 1=1"
     }
+    // add an additional part to the filter because the data was initially filtered.
     queryOptions += " AND \"Customer\" = \'" + clickedCustomer + "\'";
+    // data size is changing and thus it needs to be recounted.
     fetchNewSeqTotalWithOptions(queryOptions)
     queryOptions += ' ' + getSortInfo(sort2) + ' ' + getPageInfo(page2)
     fetchSeqWithSQL(queryOptions);
@@ -365,15 +300,14 @@ const ttcustDataGrid : React.FC = () => {
 
   //function to handle page changes
   const pageChange = (event: GridPageChangeEvent) => {
-        //fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
         const targetEvent = event.targetEvent as PagerTargetEvent;
-        //const take = targetEvent.value === 'All' ? custs.length : event.page.take;
+        // a possibility that triggers the event is that the number of elements per page has changed. Thus we need to regrab the page number
         var take = event.page.take;
-        if (targetEvent.value === 'All'){
+        if (targetEvent.value === 'All'){ //if the page is all, we need to set it to the total.
           take = total;
         }
         console.log(event)
-        if (targetEvent.value) {
+        if (targetEvent.value) { // setting the new stored value.
             setPageSizeValue(targetEvent.value);
         }
         setPage({
@@ -386,21 +320,20 @@ const ttcustDataGrid : React.FC = () => {
         if (targetEvent.value === 'All'){
           queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort);
         } else {
-          queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort) + " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+          queryOptions += getFilterInfo(filter) + " " + getSortInfo(sort) + " " + getPageInfo({skip: newSkip, take :newPage} as PageState);
         }
         fetchCustsWithSQL(queryOptions);
     };
 
     const pageChange2 = (event: GridPageChangeEvent) => {
-        //fetchNewTotalWithOptions(getFilterInfo() + ' ' + getSortInfo());
         const targetEvent = event.targetEvent as PagerTargetEvent;
-        //const take = targetEvent.value === 'All' ? custs.length : event.page.take;
+        // a possibility that triggers the event is that the number of elements per page has changed. Thus we need to regrab the page number        
         var take = event.page.take;
-        if (targetEvent.value === 'All'){
+        if (targetEvent.value === 'All'){ // if the page is all, we need to set it to the total.
           take = total;
         }
         console.log(event)
-        if (targetEvent.value) {
+        if (targetEvent.value) { // setting the new stored value.
             setPageSizeValue2(targetEvent.value);
         }
         setPage2({
@@ -417,83 +350,18 @@ const ttcustDataGrid : React.FC = () => {
           queryOptions += filterInfo + " AND \"Customer\" = \'" + clickedCustomer + "\' " + getSortInfo(sort2)
         }
         if (targetEvent.value != 'All'){
-          queryOptions += " OFFSET " + newSkip as string + " ROWS FETCH NEXT " + newPage as string + " ROWS ONLY";
+          queryOptions += getPageInfo({skip: newSkip, take: newPage} as PageState);
         }
         fetchSeqWithSQL(queryOptions);
     };
 
-
-
-  
-
-  
-  //getting initial info
-  useEffect(() => {
-    const fetchCols = async () => {
-      try {
-        //check if the user already has a data table configuration for the cust data
-        const newColooUrl = colooUrl + "/" + userId + "custData";
-        const response = await
-        fetch(newColooUrl);
-        if(!response.ok){
-          if (response.status != 404){
-            throw new Error(`Error: ${response.statusText}`);
-          }
-          setCols(initialColumns)
-          const response2 = await fetch(colooUrl, {
-            method: "POST",
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({"userId":userId,"columnId":"custData","dataColumns":initialColumns}),
-          });
-          const result = await response2.json();
-          console.log(result)
+    //if the column is resized, we store the value of its resize so that it will open to being in that size. 
+    const onColumnResize = (event: any) => {
+      const newCols = cols;
+      newCols.forEach( (element) => {
+        if (element.orderIndex == event.index){
+          element.width = event.newWidth; //make sure to specify that it's using the newWidth. Event.width uses
         }
-
-          const result : column[] = await response.json()
-          setCols(result)
-      } catch (error){
-        console.error("Error fetching data:", error);
-
-      }
-      //check if the user already has a data table configuration for the seqData
-      try {
-        const newColooUrl = colooUrl + "/" + userId + "seqData";
-        const response = await
-        fetch(newColooUrl);
-        if(!response.ok){
-          if (response.status != 404){
-            throw new Error(`Error: ${response.statusText}`);
-          }
-          setCols(initialColumns)
-          const response2 = await fetch(colooUrl, {
-            method: "POST",
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({"userId":userId,"columnId":"seqData","dataColumns": initialData2Columns}),
-          });
-          const result = await response2.json();
-          console.log(result)
-        }
-
-          const result : column[] = await response.json()
-          setCols2(result)
-      } catch (error){
-        console.error("Error fetching data:", error);
-
-      }
-    }
-    fetchCols();
-  }, []);
-
-  const onColumnResize = (event: any) => {
-    const newCols = cols;
-    newCols.forEach( (element) => {
-      if (element.orderIndex == event.index){
-        element.width = event.newWidth;
-      }
     })
     const updateColumns = async () => {
       const responseUpdate = await fetch(colooUrl, {
@@ -547,6 +415,7 @@ const ttcustDataGrid : React.FC = () => {
     updateColumns();
     
   };
+
   const handleColumnReorder2 = (event: { columns: any; }) => {
     const reorderedColumns = event.columns;
     const updateColumns = async () => {
@@ -571,20 +440,99 @@ const ttcustDataGrid : React.FC = () => {
     const dataOptions = "WHERE \"Customer\" = \'" + dataItem.customer + "\' " +  getPageInfo(page2);
     fetchNewSeqTotalWithOptions(dataOptions)
     fetchSeqWithSQL(dataOptions);
-    // const addDataToSecondGraph = async () => {
-    //   try {
-    //     const response = await fetch("http://localhost:8080/jttcust/seqData/" + dataItem.customer)
-    //     if (!response.ok){
-    //       throw new Error(`Error: ${response.statusText}`); 
-    //     }
-    //     const result : SEQ_Data[] = await response.json()
-    //     setData2(result);
-    //   } catch (error) {
-    //     console.log(error)
-    //   } 
-    // }
-    // addDataToSecondGraph();
   }
+
+  //fetching the total number of data items for the jttcust grid.
+  useEffect(() => {
+    const fetchTotal = async() => {
+      try {
+        const result = await fetch(url + "/total")
+        if (!result.ok){
+          throw new Error(`Error: ${result.statusText}`);
+        }
+        setTotal(await result.json());
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    }
+    fetchTotal();
+  }, []);
+  
+  //fetching the customer data
+  useEffect(() => {
+    const fetchCusts = async () => {
+      try {
+        fetchCustsWithSQL(getPageInfo(page));
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCusts();
+  }, []);
+
+  //fetching the data that says gives the ordering and info for the column.
+  useEffect(() => {
+    const fetchCols = async () => {
+      try {
+        //check if the user already has a data table configuration for the cust data
+        const newColooUrl = colooUrl + "/" + userId + "custData";
+        const response = await
+        fetch(newColooUrl);
+        if(!response.ok){
+          if (response.status != 404){
+            throw new Error(`Error: ${response.statusText}`);
+          }
+          setCols(initialColumns)
+          const response2 = await fetch(colooUrl, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"userId":userId,"columnId":"custData","dataColumns":initialColumns}),
+          });
+          const result = await response2.json();
+          console.log(result)
+        }
+
+          const result : column[] = await response.json()
+          setCols(result)
+      } catch (error){
+        console.error("Error fetching data:", error);
+
+      }
+      //check if the user already has a data table configuration for the seqData
+      try {
+        const newColooUrl = colooUrl + "/" + userId + "seqData";
+        const response = await
+        fetch(newColooUrl);
+        if(!response.ok){
+          if (response.status != 404){
+            throw new Error(`Error: ${response.statusText}`);
+          }
+          setCols(initialColumns)
+          const response2 = await fetch(colooUrl, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"userId":userId,"columnId":"seqData","dataColumns": initialData2Columns}),
+          });
+          const result = await response2.json();
+          console.log(result)
+        }
+          const result : column[] = await response.json()
+          setCols2(result)
+      } catch (error){
+        console.error("Error fetching data:", error);
+      }
+    }
+    fetchCols();
+  }, []);
+
+  
 
   if (loading) return (
     <DrawerContainer>

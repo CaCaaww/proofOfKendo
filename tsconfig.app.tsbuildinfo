@@ -1,1 +1,1 @@
-{"root":["./src/main.tsx","./src/vite-env.d.ts","./src/screens/drawercontainer.tsx","./src/screens/home.tsx","./src/screens/iaudatagrid.tsx","./src/screens/login.tsx","./src/screens/ttcustdatagrid.tsx"],"version":"5.8.3"}
+{"root":["./src/environment.tsx","./src/main.tsx","./src/readconfig.tsx","./src/vite-env.d.ts","./src/screens/drawercontainer.tsx","./src/screens/home.tsx","./src/screens/iaudatagrid.tsx","./src/screens/login.tsx","./src/screens/ttcustdatagrid.tsx"],"version":"5.8.3"}
