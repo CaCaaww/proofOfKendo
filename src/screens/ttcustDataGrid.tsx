@@ -5,10 +5,10 @@ import { useParams } from 'react-router-dom';
 import { PagerTargetEvent } from '@progress/kendo-react-data-tools';
 import DrawerContainer from './drawerContainer';
 import { APP_API_URL } from '../environment';
+import { FetchUrlFromFile } from '../readConfig';
 //import './App.css'
 
-const url = APP_API_URL + '/jttcust'
-const colooUrl = APP_API_URL + '/coloo'
+
 
 //column Id is: custData
 
@@ -51,35 +51,47 @@ const initialData2Columns = [
   { field: "Seq-pre", title: "SEQ-PRE", orderIndex: 1, width: '150px'},
   { field: "Seq-num", title: "SEQ-NUM", orderIndex: 2, width: "150px"},
 ]
+// const url = APP_API_URL + '/jttcust'
+// const colooUrl = APP_API_URL + '/coloo'
 
+export function TtcustDataGrid() {
+  var url = APP_API_URL + "/jttcust";
+  var colooUrl = APP_API_URL + "/coloo";
 
-const ttcustDataGrid : React.FC = () => {
-  const { id } = useParams()
-  const userId = id as string;
-  const [total, setTotal] = useState<number> (0);
-  const [numButtons] = useState<number> (5);
+  var num = 0;
+  console.log(num)
+  const getUrlInfo = async () => {
+    const url3 = await FetchUrlFromFile();
+    console.log(url3)
+  }
+  getUrlInfo();
+
+  const { id } = useParams() // getting the ID of the user logged in via the parameters in the U.S. 
+  const userId = id as string; // setting a local variable for the userId, to be used to track down the user's configuration of their data grid.
+  const [total, setTotal] = useState<number> (0); // the total number of data items in the customer grid.
+  const [numButtons] = useState<number> (5); // the number of buttons for pages at the bottom bar. 
 
   
 
-  const [page, setPage] = useState<PageState>(initialDataState);
-  const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>();
-  const [sort, setSort] = useState<[string, string | undefined]>(["customer", "asc"]);
-  const [filter, setFilter] = useState<filter | undefined>(undefined);
+  const [page, setPage] = useState<PageState>(initialDataState); // stores the take and the skip of the pages, which determines what data is shown on the grid.
+  const [pageSizeValue, setPageSizeValue] = useState<number | string | undefined>(); // the number of rows per page, which could be 'All'
+  const [sort, setSort] = useState<[string, string | undefined]>(["customer", "asc"]); // how the data is sorted (asc or desc) and by which column it is sorted on.
+  const [filter, setFilter] = useState<filter | undefined>(undefined); // how the data is filtered by, storing the column, the value, and how much it has to match.
 
-  const [page2, setPage2] = useState<PageState>(initialDataState);
+  const [page2, setPage2] = useState<PageState>(initialDataState); // stores the page data but for the second grid
   const [pageSizeValue2, setPageSizeValue2] = useState<number | string | undefined>();
-  const [total2, setTotal2] = useState<number> (0);
-  const [numButtons2] = useState<number> (5);
-  const [sort2, setSort2] = useState<[string, string | undefined]>(["customer", "asc"]);
-  const [filter2, setFilter2] = useState<filter | undefined>(undefined);
-  const [data2, setData2] = useState<SEQ_Data[]>([]);
-  const [clickedCustomer, setClikcedCustomer] = useState<String>();
+  const [total2, setTotal2] = useState<number> (0); // stores the number of data items for the second grid.
+  const [numButtons2] = useState<number> (5); // stores the number of buttons for the page bar.
+  const [sort2, setSort2] = useState<[string, string | undefined]>(["customer", "asc"]); // stores how the data in the second grid is sorted.
+  const [filter2, setFilter2] = useState<filter | undefined>(undefined); // stores how the data in the second grid is filtered.
+  const [data2, setData2] = useState<SEQ_Data[]>([]); // stored the data for the second grid. 
+  const [clickedCustomer, setClikcedCustomer] = useState<String>(); // stores which customer on the data grid was clicked on. 
   
-  const [cols, setCols] = useState<column[]>(initialColumns);
-  const [cols2, setCols2] = useState<column[]>(initialData2Columns)
-  const [custs, setCusts] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [cols, setCols] = useState<column[]>(initialColumns); // stores the data on the column configuration for the customer data
+  const [cols2, setCols2] = useState<column[]>(initialData2Columns) // stores the data on the column configuration for the second data grid.
+  const [custs, setCusts] = useState<Customer[]>([]); // stores the data for the customer grid.
+  const [loading, setLoading] = useState<boolean>(true); // boolean value for if the data is loading
+  const [error, setError] = useState<string | null>(null); // used for if the data has thrown an error.
 
   
 
@@ -444,6 +456,10 @@ const ttcustDataGrid : React.FC = () => {
 
   //fetching the total number of data items for the jttcust grid.
   useEffect(() => {
+    num += 1;
+    console.log(num);
+    //console.log("Function Called: Fetching total number of data items for first time")
+    //getUrlInfo();
     const fetchTotal = async() => {
       try {
         const result = await fetch(url + "/total")
@@ -460,6 +476,10 @@ const ttcustDataGrid : React.FC = () => {
   
   //fetching the customer data
   useEffect(() => {
+    num += 1;
+    console.log(num)
+    //console.log("Function Called: Fetching Customer Data Function For First Time")
+    //getUrlInfo();
     const fetchCusts = async () => {
       try {
         fetchCustsWithSQL(getPageInfo(page));
@@ -473,8 +493,12 @@ const ttcustDataGrid : React.FC = () => {
     fetchCusts();
   }, []);
 
-  //fetching the data that says gives the ordering and info for the column.
+  //fetching the data that gives the ordering and info for the column.
   useEffect(() => {
+    num += 1;
+    console.log(num);
+    //console.log("Function Called: Fetching Column Order Data For First Time")
+    //getUrlInfo();
     const fetchCols = async () => {
       try {
         //check if the user already has a data table configuration for the cust data
@@ -617,4 +641,3 @@ const ttcustDataGrid : React.FC = () => {
   
 };
 
-export default ttcustDataGrid;

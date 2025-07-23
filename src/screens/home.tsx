@@ -4,7 +4,7 @@ import DrawerContainer from './drawerContainer';
 
 
 
-function Home() {
+export function Home() {
     //const { id } = useParams()
     //const userId = id as string;
     //const navigate = useNavigate();
@@ -35,5 +35,3 @@ function Home() {
         </DrawerContainer>
     );
 }
-
-export default Home;

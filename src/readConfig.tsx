@@ -1,13 +1,15 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-    var apiUrl = ''
-    const fetchUrl = async () => {
-        const responseTest  = await fetch("/config.json");
-        const file = await responseTest.json();
-        console.log(file)
-        console.log(file.apiUrl)
-        apiUrl = file.apiUrl
-    }
-    fetchUrl();
+
+export const FetchUrlFromFile = async () => {
+    const [api, setApi] = useState("potato");
+    useEffect(() => {
+    axios.get("./config.json").then((res) => {
+      setApi(res.data.apiUrl);
+      console.log(res.data.apiUrl)
+    });
+    }, []);
+    return api;
+}
     
-const api_url = apiUrl;
-export default api_url;

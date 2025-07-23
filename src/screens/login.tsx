@@ -5,11 +5,17 @@ import { Button } from '@progress/kendo-react-buttons';
 import "@progress/kendo-theme-default/dist/all.css"
 //import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-
-
-//import api_url  from '../readConfig';
 import { APP_API_URL } from '../environment';
-const loginUrl = APP_API_URL + "/jttcust/login"
+
+//import { FetchUrlFromFile }  from '../readConfig';
+//import { APP_API_URL } from '../environment';
+// var loginUrl2
+// if (api_url == ''){
+//     loginUrl2 = APP_API_URL + "/jttcust/login";
+// } else {
+//     loginUrl2 = api_url + "/jttcust/login";
+// }
+
 
 
 
@@ -18,6 +24,13 @@ const loginUrl = APP_API_URL + "/jttcust/login"
 
 
 export function Login() {
+    var loginUrl = APP_API_URL + "/jttcust/login";
+    // const getUrlInfo = async () => {
+    //     const loginUrl2 = await FetchUrlFromFile();
+    //     loginUrl += loginUrl2  + "/jttcust/login";
+    // }
+    // getUrlInfo();
+
     const navigate = useNavigate();
     const goToHomePage = (userID : string) => {
         navigate('/home/' + userID  
@@ -26,6 +39,7 @@ export function Login() {
     const handleSubmit = async (dataItem: { [Username: string]: any }) => {
         //console.log(APP_URL_TEST)
         const username = dataItem.Username as string;
+        console.log(loginUrl + "/" + username);
         const response = await fetch(loginUrl + "/" + username)
         if (!response.ok){
             if (response.status != 404){

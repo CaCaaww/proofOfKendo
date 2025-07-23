@@ -9,7 +9,6 @@ import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
 import { Error as Error2 } from '@progress/kendo-react-labels';
 import { APP_API_URL } from '../environment';
-
 //interface that models the data stored in the grid. 
 interface iauData{
     seqNum: string; 
@@ -51,10 +50,19 @@ const initialColumns = [
 
 
 
-const url = APP_API_URL + '/jttcust' //the url to talk to the jdbc -- where the data is largely grabbed from
-const colooUrl = APP_API_URL + 'coloo' //the url to talk to the json file that stores the column order information
+//const url = APP_API_URL + '/jttcust' //the url to talk to the jdbc -- where the data is largely grabbed from
+//const colooUrl = APP_API_URL + 'coloo' //the url to talk to the json file that stores the column order information
 
-const iauDataGrid : React.FC = () => {
+export function IauDataGrid () {
+    var url = APP_API_URL + "/jttcust";
+    var colooUrl = APP_API_URL + "/coloo";
+    // const getUrlInfo = async () => {
+    //     const url2 = await FetchUrlFromFile();
+    //     url += url2  + "/jttcust";
+    //     colooUrl += url2 + '/coloo'
+    // }
+    // getUrlInfo();
+
     // these two are the userId parameters, gotten from the login and carried through the route URL's
     const { id } = useParams()
     const userId = id as string;
@@ -464,4 +472,4 @@ const iauDataGrid : React.FC = () => {
 
 
 };
-export default iauDataGrid;
+//export default iauDataGrid;
